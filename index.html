@@ -220,6 +220,8 @@ tr:last-child td{border-bottom:0}
 .rt:hover{border-color:var(--lime)}
 .rt[aria-pressed="true"]{background:var(--lime);color:var(--on-lime);border-color:var(--lime);font-weight:700}
 .rt.add{border-style:dashed;color:var(--mute)}
+.rt.ed{padding:7px 10px;margin-left:-6px;color:var(--mute)} .rt.ed:hover{color:var(--lime)}
+.cv{user-select:none;-webkit-user-select:none}
 .racts .del{border-color:var(--late);color:var(--late)}
 .zl{min-width:48px;text-align:center;color:var(--mute);font-size:14px}
 .up{color:var(--lime);font-size:13px;letter-spacing:.08em;text-transform:uppercase}
@@ -242,7 +244,7 @@ tr:last-child td{border-bottom:0}
 .nt[contenteditable="true"]{cursor:text;user-select:text;-webkit-user-select:text}
 .rh{position:absolute;right:calc(-9px*var(--ik,1));bottom:calc(-9px*var(--ik,1));width:calc(18px*var(--ik,1));height:calc(18px*var(--ik,1));background:var(--lime);cursor:nwse-resize;display:none;transform:skewX(-20deg)}
 .ri.sel .rh{display:block} .ri.ro .rh{display:none!important}
-.rhint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--mute);pointer-events:none;padding:24px}
+.rhint{user-select:none;-webkit-user-select:none;position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--mute);pointer-events:none;padding:24px}
 .rhint[hidden]{display:none}
 .rhint b{display:block;color:var(--ink);font-size:30px;text-transform:uppercase;margin-bottom:6px}
 .rfoot{color:var(--mute);font-size:13px;letter-spacing:.04em;margin:8px 0 0}
@@ -802,7 +804,7 @@ function zRange(){var lo=0,hi=0;curItems().forEach(function(r){var z=r.z||0;if(z
 function ensureBoard(){var L=boardList();if(!L.some(function(b){return b.id===curBoard}))curBoard=L.length?L[0].id:""}
 function rbarHtml(){
   var L=boardList(),h='<div class="rtabs">';
-  L.forEach(function(b){h+='<button class="rt" data-bd="'+esc(b.id)+'" aria-pressed="'+(b.id===curBoard)+'">'+esc(b.name)+'</button>'});
+  L.forEach(function(b){h+='<button class="rt" data-bd="'+esc(b.id)+'" aria-pressed="'+(b.id===curBoard)+'">'+esc(b.name)+'</button>';if(canWrite&&b.id===curBoard)h+='<button class="rt ed" data-act="editboard" title="Renommer ce board" aria-label="Renommer ce board">✎</button>'});
   if(canWrite)h+='<button class="rt add" data-act="newboard">+ Board</button>';
   h+='</div><div class="racts">';
   var nsel=selIds().length;
