@@ -144,6 +144,32 @@ tr:last-child td{border-bottom:0}
 .rhint .qb span{color:var(--mute)}
 .rhint .chip{background:var(--panel);border:1px solid var(--line);padding:8px 14px;text-transform:uppercase;letter-spacing:.06em;font-size:14px}
 .rhint .chip:hover{border-color:var(--lime);color:var(--lime)}
+*{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+::-webkit-scrollbar{width:10px;height:10px} ::-webkit-scrollbar-thumb{background:var(--line)} ::-webkit-scrollbar-thumb:hover{background:var(--mute)} ::-webkit-scrollbar-track{background:transparent}
+.brand{cursor:pointer} .brand:hover b{color:var(--lime)}
+.tgl{display:flex;align-items:center;gap:10px;background:none;border:0;color:var(--mute);font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:2px 0}
+.tgl svg{width:16px;height:16px;flex:none} .tgl:hover{color:var(--lime)}
+#cpBtn{font-size:12px;letter-spacing:.1em;padding:9px 12px;color:var(--mute)}
+.mod{position:fixed;inset:0;z-index:250;background:rgba(0,0,0,.62);display:flex;align-items:flex-start;justify-content:center;padding:12vh 16px 16px}
+.mod[hidden]{display:none}
+.mbox{background:var(--panel);border:1px solid var(--lime);width:min(640px,100%);max-height:72vh;overflow:auto;box-shadow:0 18px 60px rgba(0,0,0,.6)}
+#cpIn{width:100%;background:transparent;border:0;border-bottom:1px solid var(--line);padding:18px 20px;font-size:22px;outline:none}
+.cpi{display:flex;justify-content:space-between;gap:12px;align-items:baseline;width:100%;text-align:left;background:none;border:0;padding:11px 20px;font-size:17px}
+.cpi small{color:var(--mute);text-transform:uppercase;letter-spacing:.08em;font-size:12px;flex:none}
+.cpi[aria-selected="true"]{background:var(--lime);color:var(--on-lime)} .cpi[aria-selected="true"] small{color:var(--on-lime)}
+.cpn{padding:18px 20px;color:var(--mute)}
+.kbox{padding:20px 24px} .kbox h2{margin:0 0 14px;font-size:26px;text-transform:uppercase;color:var(--lime)}
+.kgrid{display:grid;grid-template-columns:auto 1fr;gap:8px 20px;align-items:baseline}
+.kgrid kbd{background:var(--panel2);border:1px solid var(--line);padding:2px 8px;font:inherit;font-size:14px;white-space:nowrap}
+.kgrid h4{grid-column:1/-1;margin:12px 0 0;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+#toast .ta{margin-left:14px;background:none;border:0;border-bottom:2px solid var(--on-lime);padding:0;font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:14px}
+@media (min-width:901px){
+  body.scol .shell{grid-template-columns:68px minmax(0,1fr)}
+  body.scol .side{padding:14px 8px}
+  body.scol .brand{justify-content:center} body.scol .brand>div,body.scol .nav .lbl,body.scol .nav button span,body.scol #polesBox,body.scol .me>div,body.scol .sync span,body.scol .sact,body.scol .tgl span{display:none}
+  body.scol .nav button{justify-content:center!important;padding-left:0;padding-right:0}
+  body.scol .brand svg{width:40px} body.scol .me{justify-content:center} body.scol .tgl{justify-content:center} body.scol .tgl svg{transform:rotate(180deg)} body.scol .sync{justify-content:center}
+}
 .hday{margin:22px 0 8px;font-size:18px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
 .hrow{display:grid;grid-template-columns:56px minmax(0,1fr);gap:12px;padding:10px 14px;background:var(--panel);border-left:3px solid var(--line);margin-bottom:4px;align-items:baseline}
 .hrow time{color:var(--mute);font-size:14px}
@@ -320,7 +346,7 @@ body.rfull .rfoot{display:none}
 
 <div class="shell">
   <aside class="side">
-    <div class="brand">
+    <div class="brand" id="home" role="link" tabindex="0" title="Accueil (touche 1)">
       <svg viewBox="0 0 110 60" aria-hidden="true">
         <polygon points="14,4 32,4 20,56 2,56" fill="#000" stroke="#fff" stroke-width="2"/>
         <polygon points="36,4 54,4 42,56 24,56" fill="#000" stroke="#fff" stroke-width="2"/>
@@ -342,22 +368,24 @@ body.rfull .rfoot{display:none}
         <button data-v="histo"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Historique</span></button>
       </div>
     </nav>
-    <div>
+    <div id="polesBox">
       <p class="lbl" id="polesLbl">Pôle</p>
       <div class="poles" id="poles"></div>
     </div>
     </div>
     <div class="sfoot">
+      <button class="tgl" id="sbToggle" title="Réduire le menu ( [ )" aria-label="Réduire le menu"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 6l-6 6 6 6M19 6l-6 6 6 6"/></svg><span>Réduire</span></button>
       <div class="me"><i class="av" id="meAv">?</i><div><b id="meName">—</b><small id="meMail"></small></div></div>
       <div class="sync" id="sync" data-s="load"><i></i><span id="syncTxt">Chargement</span></div>
-      <div class="sact"><button id="exp" hidden>Exporter CSV</button><button id="logout" hidden>Déconnexion</button></div>
+      <div class="sact"><button id="helpBtn" title="Raccourcis clavier ( ? )">Raccourcis</button><button id="exp" hidden>Exporter CSV</button><button id="logout" hidden>Déconnexion</button></div>
     </div>
   </aside>
   <main class="main">
     <div class="top">
       <div><h1 id="vt">Suivi</h1><div class="sub" id="vs"></div></div>
       <div class="tools">
-        <input class="search" id="q" type="search" placeholder="Chercher une tâche" aria-label="Chercher une tâche">
+        <input class="search" id="q" type="search" placeholder="Chercher une tâche  ( / )" aria-label="Chercher une tâche">
+        <button class="ghost" id="cpBtn" title="Recherche rapide (Ctrl+K)">Ctrl K</button>
         <button class="cta" id="addT">+ Tâche</button>
       </div>
     </div>
@@ -367,6 +395,8 @@ body.rfull .rfoot{display:none}
 
 <div id="scrim" hidden><aside id="drawer" role="dialog" aria-modal="true" aria-labelledby="dt"></aside></div>
 <div id="toast" role="status" aria-live="polite" hidden></div>
+<div class="mod" id="cp" hidden><div class="mbox" role="dialog" aria-label="Recherche rapide"><input id="cpIn" type="text" placeholder="Aller à… une vue, une tâche, un board, une action" autocomplete="off" spellcheck="false"><div id="cpList" role="listbox"></div></div></div>
+<div class="mod" id="kbm" hidden><div class="mbox kbox" role="dialog" aria-label="Raccourcis clavier"><h2>Raccourcis clavier</h2><div class="kgrid" id="kbGrid"></div><p class="rfoot">Échap pour fermer</p></div></div>
 
 
 <style>
@@ -537,7 +567,18 @@ function today(){var t=new Date();return Date.UTC(t.getFullYear(),t.getMonth(),t
 function fmt(s){return s?s.slice(8,10)+"/"+s.slice(5,7):""}
 function fmtY(s){return s?s.slice(8,10)+"/"+s.slice(5,7)+"/"+s.slice(2,4):""}
 var ro=function(){return canWrite?"":"disabled"};
-function toast(m){var t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(function(){t.hidden=true},3500)}
+function toast(m,act){
+  var t=$("#toast");t.textContent=m;
+  if(act){var b=document.createElement("button");b.className="ta";b.textContent=act.label;b.onclick=function(){t.hidden=true;act.fn()};t.appendChild(b)}
+  t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(function(){t.hidden=true},act?7000:3500);
+}
+function undoTask(t){
+  return {label:"Annuler",fn:function(){
+    var c={};Object.keys(t).forEach(function(k){if(k!=="id")c[k]=t[k]});
+    var ref=taskCol.doc(t.id);enqueue("t"+t.id,function(){return ref.set(c)}).then(function(){toast("Tâche restaurée")});
+    logAct("a restauré « "+(t.title||"Tâche")+" »",t.id);
+  }};
+}
 function errMsg(e){var c=e&&e.code;if(c==="quota_exceeded")return "Base pleine : supprime des tâches pour en ajouter.";if(c==="invalid_argument"||c==="revoked")return "Tu n'as pas le droit de modifier ces données.";return "Enregistrement impossible, réessaie dans un instant."}
 
 /* ---------- data ---------- */
@@ -786,6 +827,8 @@ function render(){
   if(view!=="refs")document.body.classList.remove("rfull");
   document.querySelectorAll("#nav button").forEach(function(b){b.setAttribute("aria-current",b.dataset.v===view?"true":"false")});
   $("#vt").textContent=VIEWS[view][0];$("#vs").textContent=VIEWS[view][1];
+  try{localStorage.setItem("sf_view",view);if(curBoard)localStorage.setItem("sf_board",curBoard)}catch(e){}
+  document.title=VIEWS[view][0]+" · SideForce";
   var wn=whoAmI();$("#meName").textContent=wn;$("#meAv").textContent=(wn.charAt(0)||"?").toUpperCase();
   var pe=$("#poles");
   var cnt={};tasks.forEach(function(t){cnt[t.pole]=(cnt[t.pole]||0)+1});
@@ -1384,7 +1427,7 @@ drawer.addEventListener("click",function(e){
     var ed=edit;closeDrawer();
     if(ed&&ed.id&&ed.kind==="board"){delBoard(ed.id);return}
     if(ed&&ed.id&&ed.kind==="task"){var dt=tasks.filter(function(x){return x.id===ed.id})[0];if(dt)logAct("a supprimé « "+(dt.title||"Tâche")+" »","")}
-    if(ed&&ed.id){var col=ed.kind==="task"?taskCol:mileCol;enqueue((ed.kind==="task"?"t":"m")+ed.id,function(){return col.doc(ed.id).delete()}).then(function(){toast("Supprimé")})}
+    if(ed&&ed.id){var col=ed.kind==="task"?taskCol:mileCol;enqueue((ed.kind==="task"?"t":"m")+ed.id,function(){return col.doc(ed.id).delete()}).then(function(){toast("Supprimé",ed.kind==="task"&&dt?undoTask(dt):null)})}
   }
 });
 function syncPole(){
@@ -1447,6 +1490,68 @@ $("#exp").addEventListener("click",function(){
   downloads.save({filename:"preprod-sideforce.csv",data:"﻿"+[cols.map(cell).join(",")].concat(rows).join("\r\n")}).then(function(){toast("Export enregistré")},function(e){if(e&&e.code!=="declined")toast("Export impossible ici.")});
 });
 
+/* ---------- confort ---------- */
+var VORDER=["suivi","equipe","gantt","kanban","refs","histo"];
+document.querySelectorAll("#nav button").forEach(function(b){var i=VORDER.indexOf(b.dataset.v);b.title=VIEWS[b.dataset.v][0]+" (touche "+(i+1)+")"});
+function goHome(){fPole="";q="";var qi=$("#q");if(qi)qi.value="";setView("suivi");window.scrollTo(0,0)}
+$("#home").addEventListener("click",goHome);
+$("#home").addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();goHome()}});
+function toggleSide(){var on=document.body.classList.toggle("scol");try{localStorage.setItem("sf_scol",on?"1":"0")}catch(e){}$("#sbToggle").title=on?"Agrandir le menu ( [ )":"Réduire le menu ( [ )";if(view==="refs")setTimeout(applyView,0)}
+$("#sbToggle").addEventListener("click",toggleSide);
+window.addEventListener("online",function(){toast("Connexion rétablie")});
+window.addEventListener("offline",function(){toast("Hors ligne : les changements ne seront pas enregistrés")});
+/* aide clavier */
+var KB=[["Général"],["Ctrl K","Recherche rapide"],["1 – 6","Changer de vue"],["N","Nouvelle tâche"],["/","Chercher une tâche"],["[","Réduire / agrandir le menu"],["?","Cette aide"],["Échap","Fermer"],["Boards"],["P","Dessiner"],["Ctrl Z","Annuler le dernier trait"],["F","Tout voir"],["+  /  −  /  0","Zoom"],["Espace + glisser","Déplacer la vue"],["Maj + glisser","Sélectionner plusieurs"],["Ctrl A","Tout sélectionner"],["Suppr","Supprimer la sélection"],["Ctrl V","Coller une image"]];
+$("#kbGrid").innerHTML=KB.map(function(r){return r.length===1?"<h4>"+esc(r[0])+"</h4>":"<kbd>"+esc(r[0])+"</kbd><span>"+esc(r[1])+"</span>"}).join("");
+function openHelp(){$("#kbm").hidden=false}
+$("#kbm").addEventListener("mousedown",function(e){if(e.target.id==="kbm")e.currentTarget.hidden=true});
+$("#helpBtn").addEventListener("click",openHelp);
+/* recherche rapide */
+var cp=$("#cp"),cpIn=$("#cpIn"),cpList=[],cpSel=0;
+function norm(x){return String(x||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")}
+function cpItems(qs){
+  var n=norm(qs.trim()),out=[];
+  var add=function(label,hint,fn,hay){if(!n||norm(hay||label).indexOf(n)>=0)out.push({label:label,hint:hint,fn:fn})};
+  VORDER.forEach(function(v,i){add("Aller à "+VIEWS[v][0],"vue "+(i+1),function(){setView(v)})});
+  if(canWrite){
+    add("Nouvelle tâche","action",function(){openTask(null)});
+    add("Nouveau jalon ou date clé","action",function(){openMile(null)});
+    add("Nouveau board","action",function(){setView("refs");openBoard(null)});
+  }
+  boardList().forEach(function(b){add("Board : "+b.name,"board",function(){setView("refs");curBoard=b.id;render();fitView()})});
+  if(n)tasks.forEach(function(t){add(t.title||"Tâche",(t.owner||"")+" · "+(t.status||""),function(){openTask(t.id)},(t.title||"")+" "+(t.owner||"")+" "+(t.pole||""))});
+  return out.slice(0,12);
+}
+function cpDraw(){
+  cpList=cpItems(cpIn.value);if(cpSel>=cpList.length)cpSel=Math.max(0,cpList.length-1);
+  $("#cpList").innerHTML=cpList.length?cpList.map(function(it,i){return '<button class="cpi" role="option" data-i="'+i+'" aria-selected="'+(i===cpSel)+'"><span>'+esc(it.label)+'</span><small>'+esc(it.hint)+'</small></button>'}).join(""):'<div class="cpn">Aucun résultat.</div>';
+  var el=$("#cpList").querySelector('[aria-selected="true"]');if(el&&el.scrollIntoView)el.scrollIntoView({block:"nearest"});
+}
+function openPalette(){cp.hidden=false;cpIn.value="";cpSel=0;cpDraw();cpIn.focus()}
+function closePalette(){cp.hidden=true}
+function cpRun(i){var it=cpList[i];if(!it)return;closePalette();it.fn()}
+cpIn.addEventListener("input",function(){cpSel=0;cpDraw()});
+cpIn.addEventListener("keydown",function(e){
+  if(e.key==="ArrowDown"){e.preventDefault();cpSel=Math.min(cpList.length-1,cpSel+1);cpDraw()}
+  else if(e.key==="ArrowUp"){e.preventDefault();cpSel=Math.max(0,cpSel-1);cpDraw()}
+  else if(e.key==="Enter"){e.preventDefault();cpRun(cpSel)}
+});
+$("#cpList").addEventListener("click",function(e){var b=e.target.closest("[data-i]");if(b)cpRun(+b.dataset.i)});
+cp.addEventListener("mousedown",function(e){if(e.target===cp)closePalette()});
+$("#cpBtn").addEventListener("click",openPalette);
+/* raccourcis globaux */
+document.addEventListener("keydown",function(e){
+  if(e.key==="Escape"){if(!cp.hidden){closePalette();e.stopPropagation();return}if(!$("#kbm").hidden){$("#kbm").hidden=true;e.stopPropagation();return}}
+  if((e.ctrlKey||e.metaKey)&&(e.key==="k"||e.key==="K")){e.preventDefault();if(!scrim.hidden)return;openPalette();return}
+  if(e.ctrlKey||e.metaKey||e.altKey||!cp.hidden||!scrim.hidden||!$("#kbm").hidden)return;
+  var a=document.activeElement;if(a&&(/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)||a.isContentEditable))return;
+  var k=e.key;
+  if(k>="1"&&k<="6"){setView(VORDER[+k-1]);e.preventDefault()}
+  else if((k==="n"||k==="N")&&canWrite&&view!=="refs"&&view!=="histo"){e.preventDefault();openTask(null)}
+  else if(k==="/"){e.preventDefault();var qi=$("#q");if(qi&&$(".search").style.display!=="none")qi.focus();else openPalette()}
+  else if(k==="?"){e.preventDefault();openHelp()}
+  else if(k==="["){toggleSide()}
+},true);
 /* ---------- clic droit ---------- */
 var cmenu=document.createElement("div");cmenu.id="cmenu";cmenu.hidden=true;cmenu.setAttribute("role","menu");document.body.appendChild(cmenu);
 var cmItems=[];
@@ -1484,7 +1589,7 @@ function taskItems(t){
   }});
   it.push({label:"Supprimer",danger:1,confirm:1,fn:function(){
     logAct("a supprimé « "+(t.title||"Tâche")+" »","");
-    enqueue("t"+id,function(){return taskCol.doc(id).delete()}).then(function(){toast("Supprimé")});
+    enqueue("t"+id,function(){return taskCol.doc(id).delete()}).then(function(){toast("Supprimé",undoTask(t))});
   }});
   return it;
 }
@@ -1534,7 +1639,10 @@ document.addEventListener("contextmenu",function(e){
 });
 
 /* ---------- boot ---------- */
-var h0=location.hash.slice(1);if(VIEWS[h0])view=h0;
+var h0=location.hash.slice(1);
+if(VIEWS[h0])view=h0;else{try{var lv=localStorage.getItem("sf_view");if(VIEWS[lv])view=lv}catch(e){}}
+try{var lb=localStorage.getItem("sf_board");if(lb)curBoard=lb}catch(e){}
+try{if(localStorage.getItem("sf_scol")==="1")document.body.classList.add("scol")}catch(e){}
 render();
 (function(){
   var c=window.claude;
