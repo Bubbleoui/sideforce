@@ -576,9 +576,9 @@ function vSuivi(){
   var M=miles.slice().sort(function(x,y){return (x.date||"9").localeCompare(y.date||"9")});
   if(!M.length)h+='<p class="none" style="padding:0;background:none">Aucun jalon. Ajoute les grandes étapes (DA validée, fin de préprod).</p>';
   M.forEach(function(m){
-    var dd=m.date?dnum(m.date)-t0:null, done=m.status==="Fini";
-    var txt=done?"Fait":(dd==null?"":dd<0?"Dépassé de "+(-dd)+" j":dd===0?"Aujourd’hui":"Dans "+dd+" j");
-    h+='<div class="li" data-mid="'+esc(m.id)+'"><div><button class="tl" data-openm>'+esc(m.title)+'</button><small>'+esc(m.type||"Jalon")+' · '+esc(m.pole||"Tous pôles")+' · '+fmtY(m.date)+'</small></div><span class="when'+(!done&&dd!=null&&dd<0?" late":"")+'">'+txt+'</span></div>';
+    var dd=m.date?dnum(m.date)-t0:null, hs=hasStatus(m), done=hs&&m.status==="Fini";
+    var txt=done?"Fait":(dd==null?"":dd<0?(hs?"Dépassé de "+(-dd)+" j":"Passé"):dd===0?"Aujourd’hui":"Dans "+dd+" j");
+    h+='<div class="li" data-mid="'+esc(m.id)+'"><div><button class="tl" data-openm>'+esc(m.title)+'</button><small>'+esc(m.type||"Jalon")+' · '+esc(m.pole||"Tous pôles")+' · '+fmtY(m.date)+'</small></div><span class="when'+(!done&&hs&&dd!=null&&dd<0?" late":"")+'">'+txt+'</span></div>';
   });
   return h+'</div></div>';
 }
@@ -714,7 +714,7 @@ function vGantt(){
   h+='</div></div>';
   // milestones
   h+='<div class="g-row"><div class="g-label"><b style="font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--lime)">Jalons</b>'+(canWrite?'<button class="ghost" style="margin-left:auto;padding:3px 8px" data-newm>+</button>':"")+'</div><div class="g-track" style="'+grid+'">';
-  M.forEach(function(m){h+='<button class="ms s'+(m.status==="Fini"?2:0)+'" data-mid="'+esc(m.id)+'" data-openm title="'+esc(m.type||"Jalon")+'" style="left:'+((dnum(m.date)-lo)*DW-8)+'px"><i></i>'+esc(m.title)+'</button>'});
+  M.forEach(function(m){h+='<button class="ms s'+(hasStatus(m)&&m.status==="Fini"?2:0)+'" data-mid="'+esc(m.id)+'" data-openm title="'+esc(m.type||"Jalon")+'" style="left:'+((dnum(m.date)-lo)*DW-8)+'px"><i></i>'+esc(m.title)+'</button>'});
   h+='</div></div>';
   polesShown(L).forEach(function(p){
     var R=inPole(L,p); if(!R.length)return;
@@ -1283,6 +1283,7 @@ function refreshCm(){
   var el=drawer.querySelector("#cmList");if(el)el.innerHTML=cmHtml(edit.id);
 }
 var MTYPES=["Jalon","Livraison","Réunion","Deadline","Autre"];
+function hasStatus(m){return ["Réunion","Deadline","Autre"].indexOf(m.type)<0}
 function openMile(id,preset){
   var m=id?miles.filter(function(x){return x.id===id})[0]:null;
   if(id&&!m)return;
@@ -1290,10 +1291,10 @@ function openMile(id,preset){
   edit={kind:"mile",id:id};
   var dis=canWrite?"":"disabled";
   openDrawer('<h2 id="dt">'+(id?"Jalon / date clé":"Nouveau jalon ou date clé")+'</h2><form id="frm" autocomplete="off">'+
-   '<label><span>Jalon</span><input id="m-title" type="text" value="'+esc(m.title)+'" required placeholder="DA validée" '+dis+'></label>'+
+   '<label><span>Nom</span><input id="m-title" type="text" value="'+esc(m.title)+'" required placeholder="DA validée" '+dis+'></label>'+
  '<label><span>Type</span><select id="m-type" '+dis+'>'+opts(MTYPES,m.type||"Jalon")+'</select></label>'+
    '<div class="row2"><label><span>Date</span><input id="m-date" type="date" value="'+esc(m.date)+'" required '+dis+'></label>'+
-   '<label><span>Statut</span><select id="m-status" '+dis+'>'+opts(STATUS.slice(0,1).concat(["Fini"]),m.status)+'</select></label></div>'+
+   '<label id="m-statwrap" '+(hasStatus(m)?"":"hidden")+'><span>Statut</span><select id="m-status" '+dis+'>'+opts(STATUS.slice(0,1).concat(["Fini"]),m.status)+'</select></label></div>'+
    '<label><span>Pôle concerné</span><select id="m-pole" '+dis+'>'+opts(POLES,m.pole,"Tous les pôles")+'</select></label>'+
    '<div class="acts">'+(canWrite?'<button class="cta" type="submit">Enregistrer</button>':"")+'<button class="ghost" type="button" data-close>'+(canWrite?"Annuler":"Fermer")+'</button>'+
    (id&&canWrite?'<button class="ghost del" type="button" data-del>Supprimer</button>':"")+'</div></form>');
@@ -1310,6 +1311,9 @@ drawer.addEventListener("click",function(e){
     if(ed&&ed.id&&ed.kind==="task"){var dt=tasks.filter(function(x){return x.id===ed.id})[0];if(dt)logAct("a supprimé « "+(dt.title||"Tâche")+" »","")}
     if(ed&&ed.id){var col=ed.kind==="task"?taskCol:mileCol;enqueue((ed.kind==="task"?"t":"m")+ed.id,function(){return col.doc(ed.id).delete()}).then(function(){toast("Supprimé")})}
   }
+});
+drawer.addEventListener("change",function(e){
+  if(e.target.id==="m-type"){var w=drawer.querySelector("#m-statwrap");if(w)w.hidden=!hasStatus({type:e.target.value})}
 });
 drawer.addEventListener("submit",function(e){
   e.preventDefault();if(!edit||!canWrite)return;
@@ -1336,6 +1340,7 @@ drawer.addEventListener("submit",function(e){
     col=taskCol;key="t";
   }else{
     data={title:v("m-title"),date:v("m-date"),status:v("m-status"),pole:v("m-pole"),type:v("m-type")};
+    if(!hasStatus(data))data.status=STATUS[0];
     if(!data.title||!data.date){toast("Un jalon a besoin d'un nom et d'une date.");return}
     col=mileCol;key="m";
   }
@@ -1401,8 +1406,8 @@ function taskItems(t){
 function mileItems(m){
   var id=m.id,done=m.status==="Fini";
   return [{label:"Ouvrir",fn:function(){openMile(id)}},
-    {label:done?"Remettre à faire":"Marquer fait",fn:function(){enqueue("m"+id,function(){return mileCol.doc(id).update({status:done?"À faire":"Fini"})})}},
-    {sep:1},{label:"Supprimer",danger:1,confirm:1,fn:function(){enqueue("m"+id,function(){return mileCol.doc(id).delete()}).then(function(){toast("Supprimé")})}}];
+    ].concat(hasStatus(m)?[{label:done?"Remettre à faire":"Marquer fait",fn:function(){enqueue("m"+id,function(){return mileCol.doc(id).update({status:done?"À faire":"Fini"})})}}]:[]).concat([
+    {sep:1},{label:"Supprimer",danger:1,confirm:1,fn:function(){enqueue("m"+id,function(){return mileCol.doc(id).delete()}).then(function(){toast("Supprimé")})}}]);
 }
 document.addEventListener("contextmenu",function(e){
   if(!scrim.hidden||!canWrite)return;
