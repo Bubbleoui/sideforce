@@ -479,7 +479,7 @@ function linkOf(t){return t.link&&/^https?:\/\//i.test(t.link)?'<a class="lk" hr
 
 /* ---------- views ---------- */
 function vEmpty(){
-  if(!dbOn)return '<div class="empty"><b>Données indisponibles</b>Connexion à la base impossible. Vérifie ta connexion internet puis recharge la page.</div>';
+  if(!dbOn)return '<div class="empty"><b>Données indisponibles</b>Connexion à la base impossible. Vérifie ta connexion internet puis recharge la page.'+(window.SF_ERR?'<br><small>Détail : '+String(window.SF_ERR).replace(/</g,'&lt;')+'</small>':'')+'</div>';
   return '<div class="empty"><b>Aucune tâche pour l’instant</b>Ajoute la première tâche de préprod avec le bouton « + Tâche ».</div>';
 }
 function vSuivi(){
@@ -1127,7 +1127,7 @@ render();
     refCol.onSnapshot(function(s){refs=s.docs.map(function(d){var o=d.data()||{};o.id=d.id;return o});refsLoaded=true;render()},function(){refsLoaded=true;render()});
     var seen=0;
     var ok=function(){seen++;if(seen>=2){loaded=true;render.slow=false;clearTimeout(timer)}};
-    var failed=false,bad=function(){failed=true;dbOn=false;loaded=true;clearTimeout(timer);render()};
+    var failed=false,bad=function(e){window.SF_ERR=(e&&e.message)||String(e||"");failed=true;dbOn=false;loaded=true;clearTimeout(timer);render()};
     var tFirst=true,mFirst=true;
     taskCol.onSnapshot(function(s){tasks=s.docs.map(function(d){var o=d.data()||{};o.id=d.id;return o});if(tFirst){tFirst=false;ok()}else if(loaded&&!failed){}render()},bad);
     mileCol.onSnapshot(function(s){miles=s.docs.map(function(d){var o=d.data()||{};o.id=d.id;return o});if(mFirst){mFirst=false;ok()}render()},bad);
