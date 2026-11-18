@@ -108,6 +108,10 @@ tr:last-child td{border-bottom:0}
 #cmenu button.dg{color:var(--late)} #cmenu button.dg:hover{background:var(--late);color:#fff}
 #cmenu .hd{padding:8px 16px 2px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
 #cmenu hr{border:0;border-top:1px solid var(--line);margin:6px 0}
+#m-polechk[hidden],#m-polewrap[hidden]{display:none!important}
+.chkl{display:flex!important;flex-direction:row!important;align-items:center;gap:10px;cursor:pointer}
+.chkl input{width:18px;height:18px;accent-color:var(--lime);flex:none}
+.chkl span{margin:0!important;text-transform:none!important;font-size:16px!important;letter-spacing:0!important;color:var(--ink)!important}
 .hday{margin:22px 0 8px;font-size:18px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
 .hrow{display:grid;grid-template-columns:56px minmax(0,1fr);gap:12px;padding:10px 14px;background:var(--panel);border-left:3px solid var(--line);margin-bottom:4px;align-items:baseline}
 .hrow time{color:var(--mute);font-size:14px}
@@ -1295,7 +1299,8 @@ function openMile(id,preset){
  '<label><span>Type</span><select id="m-type" '+dis+'>'+opts(MTYPES,m.type||"Jalon")+'</select></label>'+
    '<div class="row2"><label><span>Date</span><input id="m-date" type="date" value="'+esc(m.date)+'" required '+dis+'></label>'+
    '<label id="m-statwrap" '+(hasStatus(m)?"":"hidden")+'><span>Statut</span><select id="m-status" '+dis+'>'+opts(STATUS.slice(0,1).concat(["Fini"]),m.status)+'</select></label></div>'+
-   '<label><span>Pôle concerné</span><select id="m-pole" '+dis+'>'+opts(POLES,m.pole,"Tous les pôles")+'</select></label>'+
+   '<label id="m-polechk" class="chkl" '+(m.type==="Deadline"?"":"hidden")+'><input type="checkbox" id="m-usepole" '+(m.pole?"checked ":"")+dis+'><span>Concerne un pôle précis</span></label>'+
+   '<label id="m-polewrap" '+(m.type==="Deadline"&&!m.pole?"hidden":"")+'><span>Pôle concerné</span><select id="m-pole" '+dis+'>'+opts(POLES,m.pole,"Tous les pôles")+'</select></label>'+
    '<div class="acts">'+(canWrite?'<button class="cta" type="submit">Enregistrer</button>':"")+'<button class="ghost" type="button" data-close>'+(canWrite?"Annuler":"Fermer")+'</button>'+
    (id&&canWrite?'<button class="ghost del" type="button" data-del>Supprimer</button>':"")+'</div></form>');
 }
@@ -1312,8 +1317,17 @@ drawer.addEventListener("click",function(e){
     if(ed&&ed.id){var col=ed.kind==="task"?taskCol:mileCol;enqueue((ed.kind==="task"?"t":"m")+ed.id,function(){return col.doc(ed.id).delete()}).then(function(){toast("Supprimé")})}
   }
 });
+function syncPole(){
+  var ty=drawer.querySelector("#m-type"),ck=drawer.querySelector("#m-polechk"),u=drawer.querySelector("#m-usepole"),pw=drawer.querySelector("#m-polewrap");
+  if(!ty||!ck||!pw)return;
+  var dl=ty.value==="Deadline";ck.hidden=!dl;pw.hidden=dl&&!(u&&u.checked);
+}
 drawer.addEventListener("change",function(e){
-  if(e.target.id==="m-type"){var w=drawer.querySelector("#m-statwrap");if(w)w.hidden=!hasStatus({type:e.target.value})}
+  if(e.target.id==="m-type"){
+    var w=drawer.querySelector("#m-statwrap");if(w)w.hidden=!hasStatus({type:e.target.value});
+    syncPole();
+  }
+  if(e.target.id==="m-usepole")syncPole();
 });
 drawer.addEventListener("submit",function(e){
   e.preventDefault();if(!edit||!canWrite)return;
@@ -1341,6 +1355,7 @@ drawer.addEventListener("submit",function(e){
   }else{
     data={title:v("m-title"),date:v("m-date"),status:v("m-status"),pole:v("m-pole"),type:v("m-type")};
     if(!hasStatus(data))data.status=STATUS[0];
+    if(data.type==="Deadline"&&!drawer.querySelector("#m-usepole").checked)data.pole="";
     if(!data.title||!data.date){toast("Un jalon a besoin d'un nom et d'une date.");return}
     col=mileCol;key="m";
   }
