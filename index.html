@@ -30,7 +30,21 @@ button{cursor:pointer}
 :focus-visible{outline:2px solid var(--lime);outline-offset:2px}
 .shell{display:grid;grid-template-columns:240px minmax(0,1fr);gap:32px;min-height:100%;padding-block:24px}
 /* sidebar */
-.side{display:flex;flex-direction:column;gap:24px;position:sticky;top:24px;align-self:start}
+.side{display:flex;flex-direction:column;gap:18px;position:sticky;top:24px;align-self:start;height:calc(100vh - 48px);background:var(--panel);padding:18px 14px 14px;border:1px solid var(--line)}
+.sbody{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:22px;margin:0 -6px;padding:0 6px;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.sfoot{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:14px}
+.me{display:flex;align-items:center;gap:12px;min-width:0}
+.me>div{min-width:0}
+.me b{display:block;font-size:15px;letter-spacing:.02em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.me small{display:block;color:var(--mute);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.av{width:36px;height:36px;flex:none;background:var(--lime);color:var(--on-lime);display:grid;place-items:center;font-style:normal;font-weight:700;font-size:18px;clip-path:polygon(14% 0,100% 0,86% 100%,0 100%)}
+.sact{display:flex;gap:12px;flex-wrap:wrap}
+.side .brand{gap:10px} .side .brand svg{width:54px} .side .brand b{font-size:22px}
+.sact button{background:none;border:0;padding:2px 0;color:var(--mute);font-size:11px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.sact button:hover{color:var(--lime)}
+.sact button[hidden]{display:none}
+.side .nav button:hover,.side .poles button:hover{background:var(--panel2)}
+.side .poles button[aria-pressed="true"]{background:var(--bg)}
 .brand{display:flex;align-items:center;gap:14px}
 .brand svg{width:76px;height:auto;flex:none}
 .brand b{display:block;font-size:26px;line-height:1;letter-spacing:.02em;text-transform:uppercase}
@@ -284,7 +298,8 @@ body.rfull .rtools{position:fixed;top:max(10px,env(safe-area-inset-top,0px));lef
 body.rfull .rfoot{display:none}
 @media (max-width:900px){
   .shell{display:block;padding-block:16px}
-  .side{position:static;gap:14px;margin-bottom:20px}
+  .side{position:static;height:auto;gap:14px;margin-bottom:20px}
+  .sbody{overflow:visible;margin:0;padding:0}
   .nav{flex-direction:row;flex-wrap:wrap} .nav .lbl{display:none} .nav button{width:auto;border-left:0}
   .poles{display:flex;flex-wrap:wrap;gap:6px} .poles button{width:auto;border:1px solid var(--line)}
   .kan,.kan.k2,.kan.k4,.kan.k5{grid-template-columns:1fr} .col{min-height:0}
@@ -305,6 +320,7 @@ body.rfull .rfoot{display:none}
       </svg>
       <div><b>Side<em>Force</em></b><span>V2 · Pipeline</span></div>
     </div>
+    <div class="sbody">
     <nav>
       <div class="nav" id="nav">
         <p class="lbl">Pipeline</p>
@@ -321,8 +337,12 @@ body.rfull .rfoot{display:none}
       <p class="lbl" id="polesLbl">Pôle</p>
       <div class="poles" id="poles"></div>
     </div>
-    <div class="sync" id="sync" data-s="load"><i></i><span id="syncTxt">Chargement</span></div>
-    <button class="ghost" id="exp" hidden>Exporter en CSV</button>
+    </div>
+    <div class="sfoot">
+      <div class="me"><i class="av" id="meAv">?</i><div><b id="meName">—</b><small id="meMail"></small></div></div>
+      <div class="sync" id="sync" data-s="load"><i></i><span id="syncTxt">Chargement</span></div>
+      <div class="sact"><button id="exp" hidden>Exporter CSV</button><button id="logout" hidden>Déconnexion</button></div>
+    </div>
   </aside>
   <main class="main">
     <div class="top">
@@ -354,7 +374,7 @@ body.rfull .rfoot{display:none}
 .lg .go:disabled{opacity:.5}
 .lg .msg{min-height:20px;color:var(--lime)} .lg .msg.err{color:var(--late)}
 .lg .lnk{background:none;border:0;color:var(--mute);text-decoration:underline;padding:0;align-self:flex-start}
-#logout{margin-top:auto}
+
 </style>
 <div class="lg" id="lg" hidden><div class="lgb">
   <svg viewBox="0 0 110 60" aria-hidden="true"><polygon points="14,4 32,4 20,56 2,56" fill="#000" stroke="#fff" stroke-width="2"/><polygon points="36,4 54,4 42,56 24,56" fill="#000" stroke="#fff" stroke-width="2"/><polygon points="58,4 76,4 64,56 46,56" fill="#c6f432"/><polygon points="80,4 98,4 86,56 68,56" fill="#c6f432"/></svg>
@@ -399,8 +419,8 @@ function check(session){
     if(r.error){show(1);$q("lgStep1").hidden=true;$q("lgStep2").hidden=true;msg("La base n'est pas encore prête : "+r.error.message,true);$q("lgOut").hidden=false;return}
     if(r.data===true){
       resolved=true;curSession=session;hide();readyRes(session);
-      var side=document.querySelector(".side");
-      if(side){var b=document.createElement("button");b.className="ghost";b.id="logout";b.textContent="Déconnexion";b.title=session.user.email;side.appendChild(b);b.onclick=function(){sb.auth.signOut().then(function(){location.reload()})}}
+      var lo=$q("logout");if(lo){lo.hidden=false;lo.onclick=function(){sb.auth.signOut().then(function(){location.reload()})}}
+      var mm=$q("meMail");if(mm)mm.textContent=session.user.email||"";
     }else{
       $q("lgStep1").hidden=true;$q("lgStep2").hidden=true;show(0);$q("lgStep1").hidden=true;$q("lgStep2").hidden=true;
       msg((session.user.email||"Ce compte")+" n'a pas accès. Demande à être ajouté à la liste.",true);$q("lgOut").hidden=false;
@@ -757,6 +777,7 @@ function render(){
   if(view!=="refs")document.body.classList.remove("rfull");
   document.querySelectorAll("#nav button").forEach(function(b){b.setAttribute("aria-current",b.dataset.v===view?"true":"false")});
   $("#vt").textContent=VIEWS[view][0];$("#vs").textContent=VIEWS[view][1];
+  var wn=whoAmI();$("#meName").textContent=wn;$("#meAv").textContent=(wn.charAt(0)||"?").toUpperCase();
   var pe=$("#poles");
   var cnt={};tasks.forEach(function(t){cnt[t.pole]=(cnt[t.pole]||0)+1});
   $("#polesLbl").textContent=view==="refs"?"Boards":"Pôle";
