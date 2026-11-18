@@ -13,6 +13,8 @@ create table if not exists public.items (
 );
 alter table public.items enable row level security;
 alter table public.items replica identity full;
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on public.items to authenticated;
 
 create or replace function public.is_member() returns boolean
 language sql stable security definer set search_path = public as $$
