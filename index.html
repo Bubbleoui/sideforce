@@ -93,6 +93,15 @@ tr:last-child td{border-bottom:0}
 .none{margin:0;padding:14px;color:var(--mute);background:var(--panel)}
 /* kanban */
 .kan{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
+.kan.k4{grid-template-columns:repeat(4,minmax(0,1fr))} .kan.k5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.col.oc>h3{background:var(--line)} .col.oc[data-owner="Tout le monde"]>h3{background:var(--lime);color:var(--on-lime)}
+.card.tk{flex-direction:row;align-items:flex-start;gap:10px;cursor:pointer}
+.card.tk .tb{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
+.card.tk.done b{text-decoration:line-through;color:var(--mute)}
+.ck{width:24px;height:24px;border:2px solid var(--mute);background:transparent;flex:none;padding:0;position:relative}
+.ck:hover{border-color:var(--lime)} .ck.on{background:var(--lime);border-color:var(--lime)}
+.ck.on::after{content:"";position:absolute;left:6px;top:1px;width:6px;height:13px;border:solid var(--on-lime);border-width:0 3px 3px 0;transform:rotate(45deg)}
+.col .addo{margin:4px 12px 0;width:calc(100% - 24px)}
 .col{background:var(--panel);min-height:320px;padding-bottom:12px}
 .col.over{outline:2px dashed var(--lime);outline-offset:-2px}
 .col>h3{margin:0 0 12px;padding:12px 14px;font-size:22px;letter-spacing:.06em;text-transform:uppercase;display:flex;justify-content:space-between}
@@ -219,7 +228,7 @@ body.rfull .rfoot{display:none}
   .side{position:static;gap:14px;margin-bottom:20px}
   .nav{flex-direction:row;flex-wrap:wrap} .nav button{width:auto;border-left:0}
   .poles{display:flex;flex-wrap:wrap;gap:6px} .poles button{width:auto;border:1px solid var(--line)}
-  .kan{grid-template-columns:1fr} .col{min-height:0}
+  .kan,.kan.k4,.kan.k5{grid-template-columns:1fr} .col{min-height:0}
   .two,.hero{grid-template-columns:1fr}
   .search{min-width:0;flex:1}
 }
@@ -241,7 +250,7 @@ body.rfull .rfoot{display:none}
       <p class="lbl">Vues</p>
       <div class="nav" id="nav">
         <button data-v="suivi">Suivi</button>
-        <button data-v="liste">Liste</button>
+        <button data-v="equipe">Équipe</button>
         <button data-v="gantt">Gantt</button>
         <button data-v="kanban">Kanban</button>
         <button data-v="refs">Réfs</button>
@@ -421,7 +430,7 @@ window.claude={use:function(n){return readyP.then(function(){return NS[n]||null}
 "use strict";
 var STATUS=["À faire","WIP","Fini"], PRIO=["P1 Haute","P2 Moyenne","P3 Basse"];
 var POLES=["Art Direction","Chara Design","Environnement","Story"];
-var VIEWS={suivi:["Suivi","Où en est la préprod"],liste:["Liste","Statut et priorité en un clic"],gantt:["Gantt","Glisse une barre pour décaler, tire ses bords pour la durée"],kanban:["Kanban","Glisse une carte pour changer son statut"],refs:["Réfs","Dépose, colle ou glisse tes images"]};
+var VIEWS={suivi:["Suivi","Où en est la préprod"],equipe:["Équipe","Chacun coche ses tâches"],gantt:["Gantt","Glisse une barre pour décaler, tire ses bords pour la durée"],kanban:["Kanban","Glisse une carte pour changer son statut"],refs:["Réfs","Dépose, colle ou glisse tes images"]};
 var MONTHS=["JANV","FÉVR","MARS","AVR","MAI","JUIN","JUIL","AOÛT","SEPT","OCT","NOV","DÉC"];
 var DW=24;
 
@@ -537,6 +546,27 @@ function vListe(){
   });
   return h;
 }
+var OWNERS=["Loic","Lucas","Rémi","Tout le monde"];
+function ownKey(t){return OWNERS.indexOf(t.owner)>=0?t.owner:"_"}
+function vEquipe(){
+  var L=visible().sort(function(a,b){return (a.status==="Fini")-(b.status==="Fini")||sortT(a,b)});
+  var keys=OWNERS.slice();if(L.some(function(t){return ownKey(t)==="_"}))keys.push("_");
+  var h='<div class="kan '+(keys.length>4?"k5":"k4")+'">';
+  keys.forEach(function(k){
+    var R=L.filter(function(t){return ownKey(t)===k}),dn=R.filter(function(t){return t.status==="Fini"}).length;
+    h+='<section class="col oc" data-owner="'+esc(k)+'"><h3><span>'+esc(k==="_"?"Non assigné":k)+'</span><span>'+dn+'/'+R.length+'</span></h3>';
+    R.forEach(function(t){
+      var d=t.status==="Fini";
+      h+='<article class="card tk'+(d?" done":"")+'" '+(canWrite?'draggable="true"':"")+' data-id="'+esc(t.id)+'" data-open tabindex="0">'+
+        '<button class="ck'+(d?" on":"")+'" data-ck aria-label="'+(d?"Marquer à faire":"Marquer fait")+'" aria-pressed="'+d+'" '+(canWrite?"":"disabled")+'></button>'+
+        '<div class="tb"><b>'+esc(t.title)+'</b><div class="meta"><span class="pole">'+esc(pname(t.pole))+'</span><span>'+(t.end?(!d&&late(t)?"⚠ ":"")+"fin "+fmt(t.end):"")+'</span></div>'+
+        '<div class="meta"><span>'+pb(t)+esc(t.prio||"")+'</span><span>'+(k==="_"?esc(t.owner||""):"")+'</span></div></div></article>';
+    });
+    if(canWrite)h+='<button class="ghost addo" data-addo="'+esc(k)+'">+ Tâche</button>';
+    h+='</section>';
+  });
+  return h+'</div>';
+}
 function vKanban(){
   var L=visible().sort(sortT), h='<div class="kan">';
   STATUS.forEach(function(s,i){
@@ -626,7 +656,7 @@ function render(){
   }
   if(!tasks.length&&view!=="suivi"){main.innerHTML=vEmpty();return}
   if(!tasks.length&&view==="suivi"&&!miles.length){main.innerHTML=vEmpty();return}
-  main.innerHTML=view==="liste"?vListe():view==="gantt"?vGantt():view==="kanban"?vKanban():vSuivi();
+  main.innerHTML=view==="equipe"?vEquipe():view==="gantt"?vGantt():view==="kanban"?vKanban():vSuivi();
   if(view==="gantt"){
     var g=$("#gantt");
     if(g){g.scrollLeft=ganttLeft!=null?ganttLeft:Math.max(0,(vGantt.t0-vGantt.lo-14)*DW)}
@@ -657,6 +687,9 @@ main.addEventListener("click",function(e){
   var ap=t.closest("[data-addp]");if(ap){openTask(null,{pole:ap.dataset.addp});return}
   if(t.closest("[data-newm]")){openMile(null);return}
   var om=t.closest("[data-openm]");if(om){openMile(om.closest("[data-mid]").dataset.mid);return}
+  var ck=t.closest("[data-ck]");
+  if(ck){var ci=ck.closest("[data-id]").dataset.id,ct=tasks.filter(function(x){return x.id===ci})[0];if(canWrite&&ct)patch(ci,{status:ct.status==="Fini"?"À faire":"Fini"});return}
+  var ao=t.closest("[data-addo]");if(ao){openTask(null,{owner:ao.dataset.addo==="_"?"":ao.dataset.addo});return}
   if(t.closest(".bar"))return;
   var o=t.closest("[data-open]");if(o){var r=o.closest("[data-id]");if(r&&!kdrag)openTask(r.dataset.id)}
 });
@@ -673,6 +706,7 @@ main.addEventListener("drop",function(e){
   var c=e.target.closest(".col");if(!c||!canWrite)return;e.preventDefault();c.classList.remove("over");
   var id="";try{id=e.dataTransfer.getData("text/plain")}catch(x){}
   var t=tasks.filter(function(x){return x.id===id})[0];
+  if(c.hasAttribute("data-owner")){var ow=c.dataset.owner==="_"?"":c.dataset.owner;if(t&&ownKey(t)!==c.dataset.owner)patch(id,{owner:ow});return}
   if(t&&t.status!==c.dataset.status)patch(id,{status:c.dataset.status});
 });
 /* gantt drag */
@@ -1036,7 +1070,7 @@ document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!scrim.hidd
 function openTask(id,preset){
   var t=id?tasks.filter(function(x){return x.id===id})[0]:null;
   if(id&&!t)return;
-  t=t||{title:"",pole:(preset&&preset.pole)||POLES[0],prio:PRIO[1],status:STATUS[0],start:"",end:"",owner:"",link:"",notes:""};
+  t=t||{title:"",pole:(preset&&preset.pole)||POLES[0],prio:PRIO[1],status:STATUS[0],start:"",end:"",owner:(preset&&preset.owner)||"",link:"",notes:""};
   edit={kind:"task",id:id};
   var dis=canWrite?"":"disabled";
   openDrawer('<h2 id="dt">'+(id?"Tâche":"Nouvelle tâche")+'</h2><form id="frm" autocomplete="off">'+
@@ -1044,7 +1078,7 @@ function openTask(id,preset){
    '<div class="row2"><label><span>Pôle</span><select id="f-pole" '+dis+'>'+opts(POLES,t.pole)+'</select></label>'+
    '<label><span>Priorité</span><select id="f-prio" '+dis+'>'+opts(PRIO,t.prio)+'</select></label></div>'+
    '<div class="row2"><label><span>Statut</span><select id="f-status" '+dis+'>'+opts(STATUS,t.status)+'</select></label>'+
-   '<label><span>Responsable</span><input id="f-owner" type="text" value="'+esc(t.owner)+'" '+dis+'></label></div>'+
+   '<label><span>Responsable</span><select id="f-owner" '+dis+'>'+opts(OWNERS.concat(t.owner&&OWNERS.indexOf(t.owner)<0?[t.owner]:[]),t.owner,"Non assigné")+'</select></label></div>'+
    '<div class="row2"><label><span>Début</span><input id="f-start" type="date" value="'+esc(t.start)+'" '+dis+'></label>'+
    '<label><span>Fin</span><input id="f-end" type="date" value="'+esc(t.end)+'" '+dis+'></label></div>'+
    '<label><span>Lien (Drive, fichier, planche)</span><input id="f-link" type="url" value="'+esc(t.link)+'" placeholder="https://" '+dis+'></label>'+
