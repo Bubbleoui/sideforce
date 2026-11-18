@@ -272,8 +272,8 @@ body.rfull .rfoot{display:none}
 
 <style>
 .lg{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px}
-.lg[hidden]{display:none}
-.lg .box{width:100%;max-width:380px;display:flex;flex-direction:column;gap:14px}
+.lg[hidden],.lg [hidden]{display:none!important}
+.lg .lgb{width:100%;max-width:380px;display:flex;flex-direction:column;gap:14px}
 .lg svg{width:120px;height:auto}
 .lg h1{margin:0;font-size:28px;text-transform:uppercase;letter-spacing:.04em}
 .lg h1 em{color:var(--lime);font-style:normal}
@@ -286,15 +286,15 @@ body.rfull .rfoot{display:none}
 .lg .lnk{background:none;border:0;color:var(--mute);text-decoration:underline;padding:0;align-self:flex-start}
 #logout{margin-top:auto}
 </style>
-<div class="lg" id="lg" hidden><div class="box">
+<div class="lg" id="lg" hidden><div class="lgb">
   <svg viewBox="0 0 110 60" aria-hidden="true"><polygon points="14,4 32,4 20,56 2,56" fill="#000" stroke="#fff" stroke-width="2"/><polygon points="36,4 54,4 42,56 24,56" fill="#000" stroke="#fff" stroke-width="2"/><polygon points="58,4 76,4 64,56 46,56" fill="#c6f432"/><polygon points="80,4 98,4 86,56 68,56" fill="#c6f432"/></svg>
   <h1>Side<em>Force</em> Pipeline</h1>
-  <div id="lgStep1" class="box" style="max-width:none">
+  <div id="lgStep1" class="lgb" style="max-width:none">
     <p>Entre ton e-mail pour recevoir un lien de connexion.</p>
     <input id="lgMail" type="email" autocomplete="email" inputmode="email" placeholder="ton@email.com">
     <button class="go" id="lgSend">Recevoir le lien</button>
   </div>
-  <div id="lgStep2" class="box" style="max-width:none" hidden>
+  <div id="lgStep2" class="lgb" style="max-width:none" hidden>
     <p>Clique sur le lien reçu par e-mail, ou entre ici le code à chiffres s'il y en a un.</p>
     <input id="lgCode" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="Code">
     <button class="go" id="lgVerify">Valider le code</button>
