@@ -112,6 +112,10 @@ tr:last-child td{border-bottom:0}
 .chkl{display:flex!important;flex-direction:row!important;align-items:center;gap:10px;cursor:pointer}
 .chkl input{width:18px;height:18px;accent-color:var(--lime);flex:none}
 .chkl span{margin:0!important;text-transform:none!important;font-size:16px!important;letter-spacing:0!important;color:var(--ink)!important}
+.bn{font-size:22px;letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+.poles .pe{font-size:13px!important;color:var(--mute);padding-top:2px!important;padding-bottom:6px!important;text-transform:uppercase;letter-spacing:.06em}
+.poles .pe:hover{color:var(--lime)}
+.poles .addb{border:1px dashed var(--line)!important;color:var(--mute)}
 .hday{margin:22px 0 8px;font-size:18px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
 .hrow{display:grid;grid-template-columns:56px minmax(0,1fr);gap:12px;padding:10px 14px;background:var(--panel);border-left:3px solid var(--line);margin-bottom:4px;align-items:baseline}
 .hrow time{color:var(--mute);font-size:14px}
@@ -303,12 +307,12 @@ body.rfull .rfoot{display:none}
         <button data-v="equipe">Équipe</button>
         <button data-v="gantt">Gantt</button>
         <button data-v="kanban">Kanban</button>
-        <button data-v="refs">Réfs</button>
+        <button data-v="refs">Boards</button>
         <button data-v="histo">Historique</button>
       </div>
     </nav>
     <div>
-      <p class="lbl">Pôle</p>
+      <p class="lbl" id="polesLbl">Pôle</p>
       <div class="poles" id="poles"></div>
     </div>
     <div class="sync" id="sync" data-s="load"><i></i><span id="syncTxt">Chargement</span></div>
@@ -481,7 +485,7 @@ window.claude={use:function(n){return readyP.then(function(){return NS[n]||null}
 "use strict";
 var STATUS=["À faire","WIP","Fini"], PRIO=["P1 Haute","P2 Moyenne","P3 Basse"];
 var POLES=["Art Direction","Chara Design","Environnement","Story"];
-var VIEWS={suivi:["Suivi","Où en est la préprod"],equipe:["Équipe","Chacun coche ses tâches"],gantt:["Gantt","Glisse une barre pour décaler, tire ses bords pour la durée"],kanban:["Kanban","Glisse une carte pour changer son statut"],refs:["Réfs","Dépose, colle ou glisse tes images"],histo:["Historique","Qui a fait quoi, et quand"]};
+var VIEWS={suivi:["Suivi","Où en est la préprod"],equipe:["Équipe","Chacun coche ses tâches"],gantt:["Gantt","Glisse une barre pour décaler, tire ses bords pour la durée"],kanban:["Kanban","Glisse une carte pour changer son statut"],refs:["Boards","Dépose, colle ou glisse tes images"],histo:["Historique","Qui a fait quoi, et quand"]};
 var MONTHS=["JANV","FÉVR","MARS","AVR","MAI","JUIN","JUIL","AOÛT","SEPT","OCT","NOV","DÉC"];
 var DW=24;
 
@@ -749,7 +753,16 @@ function render(){
   $("#vt").textContent=VIEWS[view][0];$("#vs").textContent=VIEWS[view][1];
   var pe=$("#poles");
   var cnt={};tasks.forEach(function(t){cnt[t.pole]=(cnt[t.pole]||0)+1});
-  pe.innerHTML='<button data-p="" aria-pressed="'+(fPole===""?"true":"false")+'">Tous <small>'+tasks.length+'</small></button>'+
+  $("#polesLbl").textContent=view==="refs"?"Boards":"Pôle";
+  if(view==="refs"){
+    ensureBoard();
+    var bh=boardList().map(function(b){
+      var n=refs.filter(function(r){return r.board===b.id}).length,on=b.id===curBoard;
+      return '<button data-bd="'+esc(b.id)+'" aria-pressed="'+on+'">'+esc(b.name)+' <small>'+n+'</small></button>'+(on&&canWrite?'<button class="pe" data-act="editboard" title="Renommer ce board" aria-label="Renommer ce board">✎ Renommer</button>':"");
+    }).join("");
+    if(!bh)bh='<p class="none" style="padding:6px 0;background:none;font-size:14px">Aucun board.</p>';
+    pe.innerHTML=bh+(canWrite?'<button class="addb" data-act="newboard">+ Board</button>':"");
+  }else pe.innerHTML='<button data-p="" aria-pressed="'+(fPole===""?"true":"false")+'">Tous <small>'+tasks.length+'</small></button>'+
     POLES.map(function(p){return '<button data-p="'+esc(p)+'" aria-pressed="'+(fPole===p?"true":"false")+'">'+esc(p)+' <small>'+(cnt[p]||0)+'</small></button>'}).join("");
   $("#addT").hidden=!canWrite||view==="refs"||view==="histo";
   $(".search").style.display=(view==="refs"||view==="histo")?"none":"";
@@ -779,7 +792,16 @@ function setView(v){if(!VIEWS[v])v="suivi";view=v;ganttLeft=null;if(location.has
 
 /* ---------- events ---------- */
 $("#nav").addEventListener("click",function(e){var b=e.target.closest("button");if(b)setView(b.dataset.v)});
-$("#poles").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;fPole=b.dataset.p;render()});
+$("#poles").addEventListener("click",function(e){
+  var b=e.target.closest("button");if(!b)return;
+  if(view==="refs"){
+    if(b.dataset.bd){curBoard=b.dataset.bd;render();fitView();return}
+    if(b.dataset.act==="editboard"){openBoard(curBoard);return}
+    if(b.dataset.act==="newboard"){openBoard(null);return}
+    return;
+  }
+  fPole=b.dataset.p||"";render();
+});
 $("#q").addEventListener("input",function(e){q=e.target.value;clearTimeout(render.qt);render.qt=setTimeout(render,150)});
 $("#addT").addEventListener("click",function(){openTask(null,{pole:fPole})});
 window.addEventListener("hashchange",function(){var v=location.hash.slice(1);if(VIEWS[v]&&v!==view){view=v;ganttLeft=null;render()}});
@@ -868,16 +890,13 @@ function itemById(id){return refs.filter(function(r){return r.id===id})[0]}
 function zRange(){var lo=0,hi=0;curItems().forEach(function(r){var z=r.z||0;if(z>hi)hi=z;if(z<lo)lo=z});return [lo,hi]}
 function ensureBoard(){var L=boardList();if(!L.some(function(b){return b.id===curBoard}))curBoard=L.length?L[0].id:""}
 function rbarHtml(){
-  var L=boardList(),h='<div class="rtabs">';
-  L.forEach(function(b){h+='<button class="rt" data-bd="'+esc(b.id)+'" aria-pressed="'+(b.id===curBoard)+'">'+esc(b.name)+'</button>';if(canWrite&&b.id===curBoard)h+='<button class="rt ed" data-act="editboard" title="Renommer ce board" aria-label="Renommer ce board">✎</button>'});
-  if(canWrite)h+='<button class="rt add" data-act="newboard">+ Board</button>';
-  h+='</div><div class="racts">';
+  var cb=boardList().filter(function(b){return b.id===curBoard})[0],h='<div class="rtabs"><span class="bn">'+esc(cb?cb.name:"Aucun board")+'</span></div><div class="racts">';
   var nsel=selIds().length;
   if(nsel&&canWrite)h+='<button class="ghost" data-act="front">Premier plan</button><button class="ghost" data-act="back">Arrière-plan</button><button class="ghost del" data-act="del">'+(delArm&&delArm===selKey()?"Confirmer":"Supprimer"+(nsel>1?" ("+nsel+")":""))+'</button>';
   if(upN>0)h+='<span class="up">Envoi de '+upN+'…</span>';
   h+='<button class="ghost" data-act="zout" aria-label="Dézoomer">−</button><span class="zl" id="zl">'+Math.round(rview.k*100)+'%</span><button class="ghost" data-act="zin" aria-label="Zoomer">+</button><button class="ghost" data-act="fit">Tout voir</button><button class="ghost" data-act="wheel" title="Que fait la molette ou le pavé tactile">Molette : '+({auto:"auto",zoom:"zoom",pan:"déplacer"})[wheelMode]+'</button><button class="ghost" data-act="full">'+(document.body.classList.contains("rfull")?"Quitter plein écran":"Plein écran")+'</button>';
   if(canWrite&&curBoard){
-    h+='<button class="ghost'+(penOn?" on":"")+'" data-act="pen" aria-pressed="'+penOn+'" title="Touche P">Dessiner</button><button class="ghost" data-act="editboard">Renommer</button><button class="ghost" data-act="note">+ Note</button><button class="cta" data-act="img">+ Image</button>';
+    h+='<button class="ghost'+(penOn?" on":"")+'" data-act="pen" aria-pressed="'+penOn+'" title="Touche P">Dessiner</button><button class="ghost" data-act="note">+ Note</button><button class="cta" data-act="img">+ Image</button>';
   }
   return h+'</div>';
 }
