@@ -236,6 +236,8 @@ tr:last-child td{border-bottom:0}
 .ri.draw polyline.hit{pointer-events:stroke} .ri.draw .rh{display:none!important}
 .cv.pen,.cv.pen .ri{cursor:crosshair} .cv.pen .ri.draw polyline.hit{pointer-events:none}
 .ghost.on{background:var(--lime);color:var(--on-lime);border-color:var(--lime)}
+.pbar{position:absolute;top:10px;left:10px;z-index:6;display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:rgba(31,31,31,.94);border:1px solid var(--line);padding:8px}
+.pbar[hidden]{display:none}
 .sw{width:26px;height:26px;border:2px solid var(--line);padding:0;flex:none} .sw[aria-pressed="true"]{border-color:var(--ink);outline:2px solid var(--lime)}
 .ri.broken{background:var(--panel2)}
 .ri.broken::after{content:"Image introuvable";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mute);font-size:calc(16px*var(--ik,1))}
@@ -812,16 +814,18 @@ function rbarHtml(){
   if(upN>0)h+='<span class="up">Envoi de '+upN+'…</span>';
   h+='<button class="ghost" data-act="zout" aria-label="Dézoomer">−</button><span class="zl" id="zl">'+Math.round(rview.k*100)+'%</span><button class="ghost" data-act="zin" aria-label="Zoomer">+</button><button class="ghost" data-act="fit">Tout voir</button><button class="ghost" data-act="wheel" title="Que fait la molette ou le pavé tactile">Molette : '+({auto:"auto",zoom:"zoom",pan:"déplacer"})[wheelMode]+'</button><button class="ghost" data-act="full">'+(document.body.classList.contains("rfull")?"Quitter plein écran":"Plein écran")+'</button>';
   if(canWrite&&curBoard){
-    if(penOn){
-      ["#c6f432","#ffffff","#ff6a5c","#000000"].forEach(function(c){h+='<button class="sw" data-pc="'+c+'" style="background:'+c+'" aria-pressed="'+(c===penColor)+'" aria-label="Couleur"></button>'});
-      [["Fin",2],["Moyen",5],["Épais",12]].forEach(function(w){h+='<button class="ghost'+(penW===w[1]?" on":"")+'" data-pw="'+w[1]+'">'+w[0]+'</button>'});
-      h+='<button class="ghost" data-act="undo" title="Ctrl+Z">Annuler</button>';
-    }
-    h+='<button class="ghost'+(penOn?" on":"")+'" data-act="pen" title="Touche P">'+(penOn?"Dessin : actif":"Dessiner")+'</button><button class="ghost" data-act="editboard">Renommer</button><button class="ghost" data-act="note">+ Note</button><button class="cta" data-act="img">+ Image</button>';
+    h+='<button class="ghost'+(penOn?" on":"")+'" data-act="pen" aria-pressed="'+penOn+'" title="Touche P">Dessiner</button><button class="ghost" data-act="editboard">Renommer</button><button class="ghost" data-act="note">+ Note</button><button class="cta" data-act="img">+ Image</button>';
   }
   return h+'</div>';
 }
-function refreshBar(){var b=$("#rbar");if(b)b.innerHTML=rbarHtml()}
+function penHtml(){
+  if(!penOn||!canWrite)return"";
+  var h="";
+  ["#c6f432","#ffffff","#ff6a5c","#000000"].forEach(function(c){h+='<button class="sw" data-pc="'+c+'" style="background:'+c+'" aria-pressed="'+(c===penColor)+'" aria-label="Couleur"></button>'});
+  [["Fin",2],["Moyen",5],["Épais",12]].forEach(function(w){h+='<button class="ghost'+(penW===w[1]?" on":"")+'" data-pw="'+w[1]+'">'+w[0]+'</button>'});
+  return h+'<button class="ghost" data-act="undo" title="Ctrl+Z">Annuler</button><button class="ghost" data-act="pen">Terminer</button>';
+}
+function refreshBar(){var b=$("#rbar");if(b)b.innerHTML=rbarHtml();var p=$("#pbar");if(p){p.innerHTML=penHtml();p.hidden=!penOn}}
 function applyView(){
   var w=$("#world"),cv=$("#cv");if(!w||!cv)return;
   w.style.transform="translate("+rview.x+"px,"+rview.y+"px) scale("+rview.k+")";
@@ -852,7 +856,7 @@ function renderRefs(){
   ensureBoard();
   var cv=$("#cv");
   if(!cv){
-    main.innerHTML='<div class="rtools" id="rbar"></div><div class="cv" id="cv" tabindex="0"><div class="world" id="world"></div><div class="marq" id="marq" hidden></div><div class="rhint" id="rhint" hidden></div></div>'+
+    main.innerHTML='<div class="rtools" id="rbar"></div><div class="cv" id="cv" tabindex="0"><div class="world" id="world"></div><div class="marq" id="marq" hidden></div><div class="pbar" id="pbar" hidden></div><div class="rhint" id="rhint" hidden></div></div>'+
       '<p class="rfoot">Pavé tactile : deux doigts pour déplacer, pincer pour zoomer · Souris : molette = zoom · Glisser le fond ou Espace + glisser : déplacer · Maj + glisser : sélectionner plusieurs éléments · Ctrl+A : tout · Double-clic sur une note : écrire · Suppr : supprimer · F : tout voir · Ctrl+V : coller une image</p>'+
       '<input type="file" id="rfile" accept="image/*" multiple hidden>';
     cv=$("#cv");cv.classList.toggle("pen",penOn);rboard="";nodes={};bindCanvas(cv);
@@ -982,7 +986,7 @@ function undoStroke(){
 function hideMarq(){var m=$("#marq");if(m)m.hidden=true}
 function onDown(e){
   var cv=$("#cv");
-  if(e.target.isContentEditable||e.button>1)return;
+  if(e.target.isContentEditable||e.button>1||(e.target.closest&&e.target.closest("#pbar")))return;
   pointers[e.pointerId]={x:e.clientX,y:e.clientY};
   try{cv.setPointerCapture(e.pointerId)}catch(x){}
   var ids=Object.keys(pointers);
