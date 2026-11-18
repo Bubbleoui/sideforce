@@ -38,6 +38,11 @@ button{cursor:pointer}
 .brand span{display:block;margin-top:4px;color:var(--mute);letter-spacing:.14em;text-transform:uppercase;font-size:12px}
 .lbl{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin:0 0 8px}
 .nav{display:flex;flex-direction:column;gap:4px}
+.nav .lbl{margin:14px 0 4px 2px} .nav .lbl:first-child{margin-top:0}
+.nav button{justify-content:flex-start!important;gap:12px!important;border-left:3px solid transparent}
+.nav button .ni{width:18px;height:18px;flex:none;opacity:.8}
+.nav button[aria-current="true"] .ni{opacity:1}
+.nav button:hover:not([aria-current="true"]){border-left-color:var(--lime)}
 .nav button,.poles button{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;text-align:left;
   background:transparent;border:0;border-left:4px solid transparent;padding:9px 12px;font-size:17px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink)}
 .nav button:hover,.poles button:hover{background:var(--panel)}
@@ -280,7 +285,7 @@ body.rfull .rfoot{display:none}
 @media (max-width:900px){
   .shell{display:block;padding-block:16px}
   .side{position:static;gap:14px;margin-bottom:20px}
-  .nav{flex-direction:row;flex-wrap:wrap} .nav button{width:auto;border-left:0}
+  .nav{flex-direction:row;flex-wrap:wrap} .nav .lbl{display:none} .nav button{width:auto;border-left:0}
   .poles{display:flex;flex-wrap:wrap;gap:6px} .poles button{width:auto;border:1px solid var(--line)}
   .kan,.kan.k2,.kan.k4,.kan.k5{grid-template-columns:1fr} .col{min-height:0}
   .two,.hero{grid-template-columns:1fr}
@@ -301,14 +306,15 @@ body.rfull .rfoot{display:none}
       <div><b>Side<em>Force</em></b><span>V2 · Pipeline</span></div>
     </div>
     <nav>
-      <p class="lbl">Vues</p>
       <div class="nav" id="nav">
-        <button data-v="suivi">Suivi</button>
-        <button data-v="equipe">Équipe</button>
-        <button data-v="gantt">Gantt</button>
-        <button data-v="kanban">Kanban</button>
-        <button data-v="refs">Boards</button>
-        <button data-v="histo">Historique</button>
+        <p class="lbl">Pipeline</p>
+        <button data-v="suivi"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Suivi</span></button>
+        <button data-v="equipe"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><circle cx="9" cy="8" r="3.5"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6M17 5a3.5 3.5 0 0 1 0 7M18 15c2.5.6 4 2.4 4 6"/></svg><span>Équipe</span></button>
+        <button data-v="gantt"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M3 5h9M7 12h12M5 19h8"/></svg><span>Gantt</span></button>
+        <button data-v="kanban"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><rect x="3" y="3" width="5" height="18"/><rect x="10" y="3" width="5" height="11"/><rect x="17" y="3" width="4" height="15"/></svg><span>Kanban</span></button>
+        <p class="lbl">Studio</p>
+        <button data-v="refs"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="5"/><rect x="13" y="10" width="8" height="11"/><rect x="3" y="13" width="8" height="8"/></svg><span>Boards</span></button>
+        <button data-v="histo"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Historique</span></button>
       </div>
     </nav>
     <div>
