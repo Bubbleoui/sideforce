@@ -135,6 +135,15 @@ tr:last-child td{border-bottom:0}
 .poles .pe{font-size:13px!important;color:var(--mute);padding-top:2px!important;padding-bottom:6px!important;text-transform:uppercase;letter-spacing:.06em}
 .poles .pe:hover{color:var(--lime)}
 .poles .addb{border:1px dashed var(--line)!important;color:var(--mute)}
+.bsw{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);padding:8px 14px;font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;max-width:min(60vw,420px)}
+.bsw:hover{border-color:var(--lime)} .bsw svg{width:16px;height:16px;flex:none;color:var(--lime)}
+.bnew{border-color:var(--lime)!important;color:var(--lime)}
+.bnew:hover{background:var(--lime);color:var(--on-lime)}
+.rtabs{gap:10px!important}
+.rhint .qb{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;margin-top:18px;pointer-events:auto}
+.rhint .qb span{color:var(--mute)}
+.rhint .chip{background:var(--panel);border:1px solid var(--line);padding:8px 14px;text-transform:uppercase;letter-spacing:.06em;font-size:14px}
+.rhint .chip:hover{border-color:var(--lime);color:var(--lime)}
 .hday{margin:22px 0 8px;font-size:18px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
 .hrow{display:grid;grid-template-columns:56px minmax(0,1fr);gap:12px;padding:10px 14px;background:var(--panel);border-left:3px solid var(--line);margin-bottom:4px;align-items:baseline}
 .hrow time{color:var(--mute);font-size:14px}
@@ -917,7 +926,7 @@ function itemById(id){return refs.filter(function(r){return r.id===id})[0]}
 function zRange(){var lo=0,hi=0;curItems().forEach(function(r){var z=r.z||0;if(z>hi)hi=z;if(z<lo)lo=z});return [lo,hi]}
 function ensureBoard(){var L=boardList();if(!L.some(function(b){return b.id===curBoard}))curBoard=L.length?L[0].id:""}
 function rbarHtml(){
-  var cb=boardList().filter(function(b){return b.id===curBoard})[0],h='<div class="rtabs"><span class="bn">'+esc(cb?cb.name:"Aucun board")+'</span></div><div class="racts">';
+  var cb=boardList().filter(function(b){return b.id===curBoard})[0],h='<div class="rtabs">'+(cb?'<button class="bsw" data-act="boardmenu" aria-haspopup="menu" title="Changer de board">'+esc(cb.name)+'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 9l7 7 7-7"/></svg></button>':'<span class="bn">Aucun board</span>')+(canWrite?'<button class="ghost bnew" data-act="newboard">+ Nouveau board</button>':"")+'</div><div class="racts">';
   var nsel=selIds().length;
   if(nsel&&canWrite)h+='<button class="ghost" data-act="front">Premier plan</button><button class="ghost" data-act="back">Arrière-plan</button><button class="ghost del" data-act="del">'+(delArm&&delArm===selKey()?"Confirmer":"Supprimer"+(nsel>1?" ("+nsel+")":""))+'</button>';
   if(upN>0)h+='<span class="up">Envoi de '+upN+'…</span>';
@@ -975,7 +984,7 @@ function renderRefs(){
   refreshBar();
   var hint=$("#rhint"),none=!curItems().length;
   hint.hidden=!none;
-  hint.innerHTML=!curBoard?'<div><b>Aucun board</b>Crée ton premier board avec « + Board ».</div>':
+  hint.innerHTML=!curBoard?'<div><b>Crée ton premier board</b>Un board est un espace libre pour tes images, notes et dessins.'+(canWrite?'<div class="qb"><button class="cta" data-act="newboard">+ Nouveau board</button><span>ou en un clic :</span>'+["Moodboard","Personnages","Environnements","Storyboard"].map(function(n){return '<button class="chip" data-qb="'+n+'">'+n+'</button>'}).join("")+'</div>':"")+'</div>':
     '<div><b>'+esc((boards.filter(function(b){return b.id===curBoard})[0]||{}).name||"Board")+'</b>Glisse des images ici, colle-les avec Ctrl+V<br>ou utilise « + Image » et « + Note ».</div>';
   applyView();
 }
@@ -1064,6 +1073,11 @@ function bindCanvas(cv){
   });
   $("#rfile").addEventListener("change",function(e){var f=e.target.files;if(f&&f.length)addFiles(f,centerW());e.target.value=""});
 }
+function createBoard(name){
+  if(!canWrite||!boardCol)return;
+  var br=boardCol.doc();curBoard=br.id;
+  enqueue("b"+br.id,function(){return br.set({name:name,created:Date.now()})}).then(function(){if(view==="refs")render()}).catch(function(e){toast(errMsg(e))});
+}
 function setPen(on){
   penOn=!!on;var cv=$("#cv");if(cv)cv.classList.toggle("pen",penOn);
   if(penOn)setSel([]);else refreshBar();
@@ -1095,7 +1109,7 @@ function undoStroke(){
 function hideMarq(){var m=$("#marq");if(m)m.hidden=true}
 function onDown(e){
   var cv=$("#cv");
-  if(e.target.isContentEditable||e.button>1||(e.target.closest&&e.target.closest("#pbar")))return;
+  if(e.target.isContentEditable||e.button>1||(e.target.closest&&e.target.closest("#pbar,.qb")))return;
   pointers[e.pointerId]={x:e.clientX,y:e.clientY};
   try{cv.setPointerCapture(e.pointerId)}catch(x){}
   var ids=Object.keys(pointers);
@@ -1183,6 +1197,7 @@ main.addEventListener("click",function(e){
   if(view!=="refs")return;
   var b=e.target.closest("[data-bd]");
   if(b){curBoard=b.dataset.bd;renderRefs();fitView();return}
+  var qb=e.target.closest("[data-qb]");if(qb){createBoard(qb.dataset.qb);return}
   var pc=e.target.closest("[data-pc]");if(pc){penColor=pc.dataset.pc;refreshBar();return}
   var pw=e.target.closest("[data-pw]");if(pw){penW=+pw.dataset.pw;refreshBar();return}
   var a=e.target.closest("[data-act]");if(!a)return;
@@ -1192,6 +1207,15 @@ main.addEventListener("click",function(e){
   else if(k==="fit")fitView();
   else if(k==="full"){document.body.classList.toggle("rfull");refreshBar();applyView()}
   else if(k==="wheel"){wheelMode=wheelMode==="auto"?"zoom":wheelMode==="zoom"?"pan":"auto";refreshBar()}
+  else if(k==="boardmenu"){
+    var bb=a.getBoundingClientRect(),its=boardList().map(function(b){
+      var n=refs.filter(function(r){return r.board===b.id}).length;
+      return {label:(b.id===curBoard?"✓ ":"")+b.name+"  ("+n+")",fn:function(){curBoard=b.id;render();fitView()}};
+    });
+    its.push({sep:1},{label:"+ Nouveau board",fn:function(){openBoard(null)}});
+    if(canWrite&&curBoard)its.push({label:"Renommer ce board",fn:function(){openBoard(curBoard)}},{label:"Supprimer ce board",danger:1,confirm:1,fn:function(){delBoard(curBoard)}});
+    showMenu(bb.left,bb.bottom+4,its);
+  }
   else if(k==="pen")setPen(!penOn);
   else if(k==="undo")undoStroke();
   else if(k==="img")$("#rfile").click();
