@@ -1988,10 +1988,10 @@ function toolAct(t,btn){
   if(t==="select"){setTool("select");if(penOn)setPen(false);return}
   if(t==="pen"){setPen(!penOn);return}
   if(t==="conn"){setTool(tool==="conn"?"select":"conn");return}
-  setTool("select");var c=nextPos();
+  var br=btn&&btn.getBoundingClientRect();setTool("select");var c=nextPos();
   if(t==="note")addItem("note",c.x,c.y,{text:"Note"});
   else if(t==="text")addItem("text",c.x,c.y);
-  else if(t==="shape"){var b=btn.getBoundingClientRect();showMenu(b.right+6,b.top,SHAPES.map(function(x){return {label:x[1],fn:function(){var c2=nextPos();addItem("shape",c2.x,c2.y,{shape:x[0]})}}}))}
+  else if(t==="shape"){var b=br||{right:60,top:200};showMenu(b.right+6,b.top,SHAPES.map(function(x){return {label:x[1],fn:function(){var c2=nextPos();addItem("shape",c2.x,c2.y,{shape:x[0]})}}}))}
   else if(t==="frame")addItem("frame",c.x,c.y);
   else if(t==="task")openTaskPicker();
   else if(t==="img")$("#rfile").click();
