@@ -247,6 +247,18 @@ tr:last-child td{border-bottom:0}
 .g-row.pole .g-label{background:var(--black);gap:10px}
 .gp{display:flex;align-items:center;gap:8px;background:none;border:0;padding:0;color:var(--lime);font-size:16px;letter-spacing:.06em;text-transform:uppercase}
 .gp svg{width:14px;height:14px;transition:transform .12s} .gp[aria-expanded="false"] svg{transform:rotate(-90deg)}
+:root{--p1:#ff4d4d;--p2:#ffb020;--p3:#4da3ff}
+html[data-theme="clair"]{--p1:#d3322a;--p2:#c97c00;--p3:#1f6fd1}
+.gpr{display:inline-block;font-style:normal;font-weight:700;font-size:11px;letter-spacing:.06em;padding:1px 6px;color:#101010;background:var(--pc,var(--mute));vertical-align:1px}
+html[data-theme="clair"] .gpr{color:#fff}
+.gpr.p1{--pc:var(--p1)}.gpr.p2{--pc:var(--p2)}.gpr.p3{--pc:var(--p3)}.gpr.p0{--pc:var(--mute)}
+.gantt .bar{box-shadow:inset 0 -6px 0 var(--pc,transparent)}
+.gantt .bar.lt{box-shadow:inset 4px 0 0 var(--late),inset 0 -6px 0 var(--pc,transparent)}
+.bar.p1{--pc:var(--p1)}.bar.p2{--pc:var(--p2)}.bar.p3{--pc:var(--p3)}
+.glg.p1{background:var(--p1)}.glg.p2{background:var(--p2)}.glg.p3{background:var(--p3)}
+.g-row.pole .gp b{white-space:nowrap}
+.g-row.pole .gp .av{flex:none}
+.gsep{width:1px;height:18px;background:var(--line);margin:0 4px}
 .gcnt{margin-left:auto;color:var(--mute);font-size:13px}
 .gpb{flex:none;width:44px;height:6px;background:var(--line);display:block;transform:skewX(-20deg)} .gpb>i{display:block;height:100%;background:var(--lime)}
 .g-row.pole .g-track{background:var(--black)}
@@ -805,8 +817,8 @@ var STATUS=["À faire","WIP","Fini"], PRIO=["P1 Haute","P2 Moyenne","P3 Basse"];
 var POLES=["Art Direction","Chara Design","Environnement","Story"];
 var VIEWS={suivi:["Suivi","Où en est la préprod"],equipe:["Équipe","Chacun coche ses tâches"],gantt:["Gantt","Glisse une barre pour décaler, tire ses bords pour la durée"],kanban:["Kanban","Glisse une carte pour changer son statut"],refs:["Boards","Dépose, colle ou glisse tes images"],story:["Storyline","Actes, scènes et notes d’écriture"],histo:["Historique","Qui a fait quoi, et quand"]};
 var MONTHS=["JANV","FÉVR","MARS","AVR","MAI","JUIN","JUIL","AOÛT","SEPT","OCT","NOV","DÉC"];
-var DWS={jour:38,semaine:24,mois:11},gZoom="semaine",gCol={},DW=24;
-try{gZoom=localStorage.getItem("sf_gz")||"semaine";gCol=JSON.parse(localStorage.getItem("sf_gc")||"{}")}catch(e){}
+var DWS={jour:38,semaine:24,mois:11},gZoom="semaine",gCol={},DW=24,gGroup="pole";
+try{gGroup=localStorage.getItem("sf_ggrp")||"pole";gZoom=localStorage.getItem("sf_gz")||"semaine";gCol=JSON.parse(localStorage.getItem("sf_gc")||"{}")}catch(e){}
 if(!DWS[gZoom])gZoom="semaine";DW=DWS[gZoom];
 
 var tasks=[], miles=[], view="suivi", fPole="", q="", loaded=false, canWrite=true, dbOn=true;
@@ -1097,8 +1109,8 @@ function vGantt(){
   var days=hi-lo+1, W=days*DW, LW=window.innerWidth<=900?160:280, showD=DW>=30;
   var grid='background-size:'+(7*DW)+'px 100%;width:'+W+'px;--dw:'+DW+'px';
   var seg=["jour","semaine","mois"].map(function(z){return '<button class="'+(gZoom===z?"on":"")+'" data-gz="'+z+'">'+z.charAt(0).toUpperCase()+z.slice(1)+'</button>'}).join("");
-  var h='<div class="gbar"><div class="gleg"><span><i class="glg s0"></i>À faire</span><span><i class="glg s1"></i>En cours</span><span><i class="glg s2"></i>Fini</span><span><i class="glg lt"></i>En retard</span></div>'+
-    '<div class="gtools"><button class="ghost" data-gtoday>Aujourd’hui</button><div class="seg2" role="group" aria-label="Échelle">'+seg+'</div></div></div>'+
+  var h='<div class="gbar"><div class="gleg"><span><i class="glg s0"></i>À faire</span><span><i class="glg s1"></i>En cours</span><span><i class="glg s2"></i>Fini</span><span><i class="glg lt"></i>En retard</span><span class="gsep"></span><span><i class="glg p1"></i>P1</span><span><i class="glg p2"></i>P2</span><span><i class="glg p3"></i>P3</span></div>'+
+    '<div class="gtools"><div class="seg2" role="group" aria-label="Grouper par">'+[["pole","Pôle"],["owner","Personne"],["prio","Priorité"]].map(function(g){return '<button class="'+(gGroup===g[0]?"on":"")+'" data-gg="'+g[0]+'">'+g[1]+'</button>'}).join("")+'</div><button class="ghost" data-gtoday>Aujourd’hui</button><div class="seg2" role="group" aria-label="Échelle">'+seg+'</div></div></div>'+
     '<div class="gantt" id="gantt" style="--lw:'+LW+'px"><div class="g-inner" style="width:'+(LW+W)+'px">';
   // months
   h+='<div class="g-row head"><div class="g-label">Mois</div><div class="g-track" style="width:'+W+'px">';
@@ -1122,19 +1134,27 @@ function vGantt(){
   M.forEach(function(m){h+='<button class="ms s'+(hasStatus(m)&&m.status==="Fini"?2:0)+' t-'+esc(m.type||"Jalon")+'" data-mid="'+esc(m.id)+'" data-openm title="'+esc((m.type||"Jalon")+" · "+fmtY(m.date))+'" style="left:'+((dnum(m.date)-lo)*DW+DW/2-9)+'px"><i></i><span>'+esc(m.title)+'</span></button>'});
   h+='</div></div>';
   var zi=0;
-  polesShown(L).forEach(function(p){
-    var R=inPole(L,p); if(!R.length)return;
-    var dn=R.filter(function(t){return t.status==="Fini"}).length,pc=Math.round(dn/R.length*100),col=!!gCol[p||"_"];
-    h+='<div class="g-row pole"><div class="g-label"><button class="gp" data-gp="'+esc(p||"_")+'" aria-expanded="'+!col+'"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 7 6-7"/></svg><b>'+esc(pname(p))+'</b></button><span class="gcnt">'+dn+'/'+R.length+'</span><i class="gpb"><i style="width:'+pc+'%"></i></i></div><div class="g-track" style="width:'+W+'px"></div></div>';
+  var GR=[];
+  if(gGroup==="owner"){
+    var ow={};L.forEach(function(t){ow[t.owner||""]=1});
+    Object.keys(ow).filter(Boolean).sort(function(a,b){return a.localeCompare(b)}).concat(ow[""]?[""]:[]).forEach(function(o){GR.push({key:"o:"+o,label:o||"Non assigné",owner:o,rows:L.filter(function(t){return (t.owner||"")===o})})});
+  }else if(gGroup==="prio"){
+    PRIO.concat([""]).forEach(function(pr,i){GR.push({key:"r:"+pr,label:pr||"Sans priorité",prio:i<3?i+1:0,rows:L.filter(function(t){return (PRIO.indexOf(t.prio)<0?"":t.prio)===pr})})});
+  }else polesShown(L).forEach(function(p){GR.push({key:p||"_",label:pname(p),rows:inPole(L,p)})});
+  GR.forEach(function(G){
+    var R=G.rows.slice(); if(!R.length)return;
+    var dn=R.filter(function(t){return t.status==="Fini"}).length,pc=Math.round(dn/R.length*100),col=!!gCol[G.key];
+    var gic=G.owner!==undefined?(G.owner?avHtml(profByName(G.owner),G.owner,"sm"):'<i class="av sm none">?</i>'):G.prio!==undefined?'<i class="gpr p'+G.prio+'">'+(G.prio?"P"+G.prio:"–")+'</i>':"";
+    h+='<div class="g-row pole"><div class="g-label"><button class="gp" data-gp="'+esc(G.key)+'" aria-expanded="'+!col+'"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 7 6-7"/></svg>'+gic+'<b>'+esc(G.label)+'</b></button><span class="gcnt">'+dn+'/'+R.length+'</span><i class="gpb"><i style="width:'+pc+'%"></i></i></div><div class="g-track" style="width:'+W+'px"></div></div>';
     if(col)return;
-    R.sort(function(a,b){return (a.start||"9").localeCompare(b.start||"9")||sortT(a,b)}).forEach(function(t){
+    R.sort(function(a,b){return gGroup==="prio"?((a.start||"9").localeCompare(b.start||"9")||sortT(a,b)):((a.start||"9").localeCompare(b.start||"9")||sortT(a,b))}).forEach(function(t){
       var k=STATUS.indexOf(t.status); if(k<0)k=0;
       var lt=late(t);
       var av=t.owner?avHtml(profByName(t.owner),t.owner,"sm"):'<i class="av sm none">?</i>';
-      h+='<div class="g-row t'+((zi++)%2?" z":"")+'" data-id="'+esc(t.id)+'"><div class="g-label">'+av+'<div class="gl"><button class="tl" data-open title="'+esc(t.title)+'">'+esc(t.title)+'</button><small>'+(t.owner?esc(t.owner):"Non assigné")+(t.prio?' · '+esc(t.prio.split(" ")[0]):"")+(lt?' · <em class="glt">retard</em>':"")+'</small></div></div><div class="g-track" style="'+grid+'">';
+      h+='<div class="g-row t'+((zi++)%2?" z":"")+'" data-id="'+esc(t.id)+'"><div class="g-label">'+av+'<div class="gl"><button class="tl" data-open title="'+esc(t.title)+'">'+esc(t.title)+'</button><small>'+(gGroup==="owner"?esc(pname(t.pole)):t.owner?esc(t.owner):"Non assigné")+(PRIO.indexOf(t.prio)>=0?' · <i class="gpr p'+(PRIO.indexOf(t.prio)+1)+'">'+esc(t.prio.split(" ")[0])+'</i>':"")+(lt?' · <em class="glt">retard</em>':"")+'</small></div></div><div class="g-track" style="'+grid+'">';
       if(t.start&&t.end){
         var s=dnum(t.start), e=dnum(t.end), bw=(e-s+1)*DW-2;
-        h+='<div class="bar s'+k+(lt?" lt":"")+(bw<110?" nar":"")+'" data-s="'+s+'" data-e="'+e+'" style="left:'+((s-lo)*DW)+'px;width:'+bw+'px" title="'+esc(t.title)+'">'+(canWrite?'<i class="h l"></i><i class="h r"></i>':"")+'<span class="bnm">'+esc(t.title)+'</span><span class="bt">'+fmt(t.start)+' → '+fmt(t.end)+'</span></div>';
+        h+='<div class="bar s'+k+(lt?" lt":"")+(PRIO.indexOf(t.prio)>=0?" p"+(PRIO.indexOf(t.prio)+1):"")+(bw<110?" nar":"")+'" data-s="'+s+'" data-e="'+e+'" style="left:'+((s-lo)*DW)+'px;width:'+bw+'px" title="'+esc(t.title)+'">'+(canWrite?'<i class="h l"></i><i class="h r"></i>':"")+'<span class="bnm">'+esc(t.title)+'</span><span class="bt">'+fmt(t.start)+' → '+fmt(t.end)+'</span></div>';
       }else h+='<button class="nodate ghost" data-open style="left:'+Math.max(8,(t0-lo)*DW+8)+'px">+ Ajouter des dates</button>';
       h+='</div></div>';
     });
@@ -1430,6 +1450,8 @@ main.addEventListener("click",function(e){
   var gz=t.closest("[data-gz]");
   if(gz){gZoom=gz.dataset.gz;DW=DWS[gZoom];try{localStorage.setItem("sf_gz",gZoom)}catch(x){}ganttLeft=null;render();return}
   if(t.closest("[data-gtoday]")){var gg=$("#gantt");if(gg)gg.scrollTo({left:Math.max(0,(vGantt.t0-vGantt.lo)*DW-140),behavior:"smooth"});return}
+  var ggb=t.closest("[data-gg]");
+  if(ggb){gGroup=ggb.dataset.gg;try{localStorage.setItem("sf_ggrp",gGroup)}catch(x){}ganttLeft=null;render();return}
   var gpb=t.closest("[data-gp]");
   if(gpb){var gk=gpb.dataset.gp;gCol[gk]=!gCol[gk];try{localStorage.setItem("sf_gc",JSON.stringify(gCol))}catch(x){}render();return}
   var hw=t.closest("[data-hw]");
