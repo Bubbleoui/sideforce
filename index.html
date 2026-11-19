@@ -1117,7 +1117,7 @@ function sWrite(){
       (g.virtual?'<b class="sy-in" style="border:0">Sans acte</b>':'<input class="sy-in" data-sid="'+esc(a.id)+'" data-sf="title" value="'+esc(a.title)+'" aria-label="Titre de l’acte"'+dis+'>')+
       '<span class="sy-n">'+g.scenes.length+'</span>'+(canWrite&&!g.virtual?'<span class="sy-ac"><button data-smove="'+esc(a.id)+'" data-d="-1" title="Monter">▲</button><button data-smove="'+esc(a.id)+'" data-d="1" title="Descendre">▼</button><button data-sdelact="'+esc(a.id)+'" title="Supprimer l’acte et ses scènes">✕</button></span>':"")+'</div>';
     if(!col){
-      ss.forEach(function(x){o+='<button class="sy-sc'+(cur&&cur.id===x.id?" on":"")+'" data-ssel="'+esc(x.id)+'"><i class="sd s'+Math.max(0,SSTAT.indexOf(x.status))+'" title="'+esc(x.status||SSTAT[0])+'"></i><span>'+esc(x.title||"Sans titre")+'</span><small>'+words(x.text)+'</small></button>'});
+      ss.forEach(function(x){o+='<button class="sy-sc'+(cur&&cur.id===x.id?" on":"")+'" data-ssel="'+esc(x.id)+'"><i class="sd s'+Math.max(0,SSTAT.indexOf(x.status))+'" title="'+esc(x.status||SSTAT[0])+'"></i><span>'+esc(x.title||"Sans titre")+'</span></button>'});
       if(canWrite&&!g.virtual)o+='<button class="sy-add" data-sadd="'+esc(a.id)+'">+ Scène</button>';
     }
     o+='</div>';
