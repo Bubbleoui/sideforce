@@ -343,6 +343,12 @@ mark.mn{background:color-mix(in srgb,var(--lime) 22%,transparent);color:var(--in
 .sy-sc:hover{background:var(--panel2)} .sy-sc.on{background:var(--panel2);border-left-color:var(--lime);font-weight:700}
 .sd{flex:none;width:10px;height:10px;transform:skewX(-20deg);background:var(--line)}
 .sd.s1{background:var(--mute)} .sd.s2{background:var(--lime);opacity:.55} .sd.s3{background:var(--lime)}
+.sy-sc .sy-sct{display:flex;flex-direction:column;gap:2px;white-space:normal}
+.sy-sct b{font-weight:inherit;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sy-sct em{font-style:normal;color:var(--mute);font-size:12px;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sy-meta label.sy-chk{flex-direction:row;align-items:center;gap:10px;border:1px solid var(--line);background:var(--bg);padding:9px 11px;cursor:pointer;color:var(--ink);font-size:15px;text-transform:none;letter-spacing:0;align-self:end}
+.sy-chk input{width:20px;height:20px;accent-color:var(--lime);margin:0}
+.sy-meta label.sy-chk:has(input:checked){border-color:var(--lime);color:var(--lime)}
 .sy-add{display:block;width:100%;text-align:left;background:none;border:0;color:var(--mute);padding:6px 14px 8px 36px;font-size:13px;letter-spacing:.06em;text-transform:uppercase} .sy-add:hover{color:var(--lime)}
 .sy-addact{margin:8px 10px 2px;width:calc(100% - 20px)}
 .sy-ed{background:var(--panel);border:1px solid var(--line);padding:22px 28px 28px;min-width:0}
@@ -387,7 +393,7 @@ mark.mn{background:color-mix(in srgb,var(--lime) 22%,transparent);color:var(--in
 .sy-col header small{color:var(--mute);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
 .sy-col .sy-card{min-height:0;border-left:4px solid var(--c);gap:6px;padding:12px 14px}
 .sy-col .sy-card h4{font-size:17px;line-height:1.2}
-.sy-col .sy-card p{font-size:14px;-webkit-line-clamp:3}
+.sy-col .sy-card p{font-size:14px;-webkit-line-clamp:4}
 .sy-col .sy-ct b{color:var(--c);font-size:13px}
 .sy-ct em{font-style:normal;border:1px solid var(--line);color:var(--mute);padding:0 6px;font-size:11px;letter-spacing:.1em}
 .sy-ct .sp{flex:1}
@@ -395,7 +401,7 @@ mark.mn{background:color-mix(in srgb,var(--lime) 22%,transparent);color:var(--in
 .sy-tags{display:flex;flex-wrap:wrap;gap:4px;min-width:0} .sy-tags i{font-style:normal;background:var(--panel2);border:1px solid var(--line);padding:0 7px;font-size:12px;letter-spacing:.02em;text-transform:none;color:var(--ink)}
 .sy-card.rs{background:transparent;border-style:dashed;border-left-style:solid;padding:9px 14px}
 .sy-card.rs h4{font-size:15px;font-weight:400;color:var(--mute)}
-.sy-card.rs p{display:none}
+.sy-card.rs p{-webkit-line-clamp:2;font-size:13px}
 .sy-col .sy-new{min-height:0;padding:10px;font-size:13px}
 .sy-newact{align-self:start;background:none;border:1px dashed var(--line);color:var(--mute);padding:18px 22px;font-size:15px;letter-spacing:.08em;text-transform:uppercase;min-width:150px} .sy-newact:hover{border-color:var(--lime);color:var(--lime)}
 @media(max-width:900px){.sy-cols{grid-auto-flow:row;grid-auto-columns:auto;overflow:visible}}
@@ -1067,7 +1073,9 @@ function vGantt(){
 /* ---------- storyline ---------- */
 var story=[],storyCol=null,sMode="write",sSel="",sFocus=false,sCat="",sColl={},sTimers={},sFocusId="";
 try{sMode=localStorage.getItem("sf_smode")||"write";sSel=localStorage.getItem("sf_ssel")||"";sFocus=localStorage.getItem("sf_sfocus")==="1";sColl=JSON.parse(localStorage.getItem("sf_sc")||"{}")}catch(e){}
-var SSTAT=["Idée","Brouillon","Écrit","Validé"],NCATS=["Personnage","Lieu","Idée","Thème","Autre"];
+function sDone(x){return x.written===undefined?words(x.text)>0:!!x.written}
+function sPrev(x,n){var t=String(x.text||"").replace(/\s+/g," ").trim()||String(x.summary||"").trim();return t.length>n?t.slice(0,n).replace(/\s+\S*$/,"")+"…":t}
+var NCATS=["Personnage","Lieu","Idée","Thème","Autre"];
 function sKeep(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 function byOrder(a,b){return (a.order||0)-(b.order||0)||(a.created||0)-(b.created||0)}
 function sById(id){return story.filter(function(x){return x.id===id})[0]}
@@ -1094,7 +1102,7 @@ function sAddScene(actId){
   if(!canWrite||!storyCol)return;
   if(!actId||!story.some(function(x){return x.id===actId&&x.kind==="act"}))actId=sAddAct();
   var sib=story.filter(function(x){return x.kind==="scene"&&x.act===actId});
-  var id=sNew({kind:"scene",act:actId,title:"Nouvelle scène",summary:"",text:"",status:SSTAT[0],tags:[],order:sNextOrder(sib)});
+  var id=sNew({kind:"scene",act:actId,title:"Nouvelle scène",summary:"",text:"",written:false,tags:[],order:sNextOrder(sib)});
   sSel=id;sKeep("sf_ssel",id);sColl[actId]=false;sKeep("sf_sc",JSON.stringify(sColl));sMode="write";sKeep("sf_smode","write");sFocusId=id;sFocusF="title";render();
 }
 var sFocusF="title";
@@ -1141,7 +1149,7 @@ function sWrite(){
       (g.virtual?'<b class="sy-in" style="border:0">Sans acte</b>':'<input class="sy-in" data-sid="'+esc(a.id)+'" data-sf="title" value="'+esc(a.title)+'" aria-label="Titre de l’acte"'+dis+'>')+
       '<span class="sy-n">'+g.scenes.length+'</span>'+(canWrite&&!g.virtual?'<span class="sy-ac"><button data-smove="'+esc(a.id)+'" data-d="-1" title="Monter">▲</button><button data-smove="'+esc(a.id)+'" data-d="1" title="Descendre">▼</button><button data-sdelact="'+esc(a.id)+'" title="Supprimer l’acte et ses scènes">✕</button></span>':"")+'</div>';
     if(!col){
-      ss.forEach(function(x){o+='<button class="sy-sc'+(cur&&cur.id===x.id?" on":"")+'" data-ssel="'+esc(x.id)+'"><i class="sd s'+Math.max(0,SSTAT.indexOf(x.status))+'" title="'+esc(x.status||SSTAT[0])+'"></i><span>'+esc(x.title||"Sans titre")+'</span></button>'});
+      ss.forEach(function(x){o+='<button class="sy-sc'+(cur&&cur.id===x.id?" on":"")+'" data-ssel="'+esc(x.id)+'"><i class="sd s'+(sDone(x)?3:0)+'" title="'+(sDone(x)?"Écrite":"À écrire")+'"></i><span class="sy-sct"><b>'+esc(x.title||"Sans titre")+'</b><em>'+esc(sPrev(x,70))+'</em></span></button>'});
       if(canWrite&&!g.virtual)o+='<button class="sy-add" data-sadd="'+esc(a.id)+'">+ Scène</button>';
     }
     o+='</div>';
@@ -1157,7 +1165,7 @@ function sWrite(){
     e+='<div class="sy-top"><span>'+esc(G[gi].act.title||"Acte")+' · Scène '+(si+1)+'</span><span class="sy-saved" id="sySaved"></span><span class="sp"></span>'+
       (canWrite?'<button data-smove="'+esc(cur.id)+'" data-d="-1" title="Monter la scène">▲</button><button data-smove="'+esc(cur.id)+'" data-d="1" title="Descendre la scène">▼</button><button class="dg" data-sdelscene="'+esc(cur.id)+'">Supprimer</button>':"")+'</div>'+
       '<input class="sy-title" data-sid="'+esc(cur.id)+'" data-sf="title" value="'+esc(cur.title)+'" placeholder="Titre de la scène" aria-label="Titre de la scène"'+dis+'>'+
-      '<div class="sy-meta"><label>Statut<select data-sid="'+esc(cur.id)+'" data-sf="status"'+dis+'>'+opts(SSTAT,cur.status||SSTAT[0])+'</select></label>'+
+      '<div class="sy-meta"><label class="sy-chk"><input type="checkbox" data-sid="'+esc(cur.id)+'" data-sf="written"'+(sDone(cur)?" checked":"")+dis+'><span>Scène écrite</span></label>'+
       '<label>Acte<select data-sid="'+esc(cur.id)+'" data-sf="act"'+dis+'>'+G.filter(function(g){return !g.virtual}).map(function(g){return '<option value="'+esc(g.act.id)+'"'+(cur.act===g.act.id?" selected":"")+'>'+esc(g.act.title||"Acte")+'</option>'}).join("")+'</select></label>'+
       '<label>Étiquettes (personnages, lieux…)<input data-sid="'+esc(cur.id)+'" data-sf="tags" value="'+esc((cur.tags||[]).join(", "))+'" placeholder="Mika, Arène…"'+dis+'></label></div>'+
       '<div class="sy-l"><span>Résumé</span></div><textarea class="sy-sum" data-sid="'+esc(cur.id)+'" data-sf="summary" rows="2" placeholder="L’essentiel de la scène en 1–2 phrases…"'+dis+'>'+esc(cur.summary)+'</textarea>'+
@@ -1170,18 +1178,18 @@ function sWrite(){
 }
 var ACOL=["var(--lime)","#5cd6ff","#ffa63d","#b48cff","#ff6a8e","#7be0a0"];
 function sPlan(){
-  var G=sGroups(),cnt=[0,0,0,0],tw=0;sAllScenes().forEach(function(x){cnt[Math.max(0,SSTAT.indexOf(x.status))]++;tw+=words(x.text)});
-  var tot=cnt[0]+cnt[1]+cnt[2]+cnt[3];
-  var h='<div class="sy-sum2"><div class="sy-prog" title="'+SSTAT.map(function(s,i){return cnt[i]+" "+s.toLowerCase()}).join(" · ")+'">'+(tot?cnt.map(function(c,i){return '<i class="s'+i+'" style="flex:'+c+'"></i>'}).join(""):"")+'</div>'+
-    '<div class="sy-leg">'+SSTAT.map(function(st,i){return '<span><i class="sd s'+i+'"></i>'+cnt[i]+' '+st.toLowerCase()+'</span>'}).join("")+'<span class="sp"></span>'+(canWrite?'<button class="ghost" data-sactadd>+ Acte</button>':"")+'</div></div>';
+  var G=sGroups(),cnt=[0,0],tw=0;sAllScenes().forEach(function(x){cnt[sDone(x)?0:1]++;tw+=words(x.text)});
+  var tot=cnt[0]+cnt[1];
+  var h='<div class="sy-sum2"><div class="sy-prog" title="'+cnt[0]+' écrites · '+cnt[1]+' à écrire">'+(tot?'<i class="s3" style="flex:'+cnt[0]+'"></i><i class="s0" style="flex:'+cnt[1]+'"></i>':"")+'</div>'+
+    '<div class="sy-leg"><span><i class="sd s3"></i>'+cnt[0]+' écrite'+(cnt[0]>1?"s":"")+'</span><span><i class="sd s0"></i>'+cnt[1]+' à écrire</span>'+'<span class="sp"></span>'+(canWrite?'<button class="ghost" data-sactadd>+ Acte</button>':"")+'</div></div>';
   h+='<div class="sy-cols">';
   G.forEach(function(g,gi){
     var w=0;g.scenes.forEach(function(x){w+=words(x.text)});
     h+='<section class="sy-col" style="--c:'+ACOL[gi%ACOL.length]+'"><header><b>'+String(gi+1).padStart(2,"0")+'</b><h3>'+esc(g.act.title||"Acte")+'</h3><small>'+g.scenes.length+' scène'+(g.scenes.length>1?"s":"")+' · '+w+' mots</small></header>';
     g.scenes.forEach(function(x,i){
       if(!sMatch(x))return;
-      var k=Math.max(0,SSTAT.indexOf(x.status)),rs=(x.tags||[]).some(function(t){return norm(t)==="resume"}),tg=(x.tags||[]).filter(function(t){return norm(t)!=="resume"});
-      h+='<button class="sy-card'+(rs?" rs":"")+'" data-sgo="'+esc(x.id)+'"><div class="sy-ct"><b>'+(gi+1)+'.'+(i+1)+'</b>'+(rs?'<em>Résumé</em>':"")+'<span class="sp"></span><span class="sy-st"><i class="sd s'+k+'"></i>'+esc(SSTAT[k].toLowerCase())+'</span></div><h4>'+esc(x.title||"Sans titre")+'</h4><p>'+(x.summary?esc(x.summary):'<em>Pas de résumé</em>')+'</p><div class="sy-cf"><span class="sy-tags">'+tg.map(function(t){return '<i>'+esc(t)+'</i>'}).join("")+'</span><small>'+words(x.text)+' mots</small></div></button>';
+      var dn=sDone(x),rs=(x.tags||[]).some(function(t){return norm(t)==="resume"}),tg=(x.tags||[]).filter(function(t){return norm(t)!=="resume"});
+      h+='<button class="sy-card'+(rs?" rs":"")+'" data-sgo="'+esc(x.id)+'"><div class="sy-ct"><b>'+(gi+1)+'.'+(i+1)+'</b>'+(rs?'<em>Résumé</em>':"")+'<span class="sp"></span><span class="sy-st"><i class="sd s'+(dn?3:0)+'"></i>'+(dn?"écrite":"à écrire")+'</span></div><h4>'+esc(x.title||"Sans titre")+'</h4><p>'+(sPrev(x,220)?esc(sPrev(x,220)):'<em>Vide pour l’instant</em>')+'</p><div class="sy-cf"><span class="sy-tags">'+tg.map(function(t){return '<i>'+esc(t)+'</i>'}).join("")+'</span><small>'+words(x.text)+' mots</small></div></button>';
     });
     if(canWrite&&!g.virtual)h+='<button class="sy-new" data-sadd="'+esc(g.act.id)+'">+ Scène</button>';
     h+='</section>';
@@ -1212,7 +1220,7 @@ function syAfter(){
 function sExport(){
   var G=sGroups(),L=["# Storyline — SIDE FORCE V2",""];
   G.forEach(function(g,gi){L.push("## "+(g.act.title||"Acte"),"");g.scenes.forEach(function(x,i){
-    L.push("### "+(gi+1)+"."+(i+1)+" "+(x.title||"Sans titre")+" ["+(x.status||SSTAT[0])+"]");
+    L.push("### "+(gi+1)+"."+(i+1)+" "+(x.title||"Sans titre")+" ["+(sDone(x)?"écrite":"à écrire")+"]");
     if((x.tags||[]).length)L.push("*"+x.tags.join(", ")+"*");
     if(x.summary)L.push("","> "+x.summary.replace(/\n/g,"\n> "));
     if(x.text)L.push("",x.text);
@@ -1244,12 +1252,14 @@ function syField(e){
   if(view!=="story")return;var el=e.target.closest&&e.target.closest("[data-sf]");if(!el)return;
   var id=el.dataset.sid,f=el.dataset.sf,v=el.value;
   if(f==="tags")v=parseTags(v);
+  if(el.type==="checkbox"){if(e.type==="input")return;v=el.checked}
   if(e.type==="input"&&el.tagName==="SELECT")return;
   if(el.tagName==="TEXTAREA")syGrow(el);
   if(f==="text"){var w=$("#syWords");if(w)w.textContent=words(v)+" mots"}
-  if(f==="title"&&el.classList.contains("sy-title")){var sp=main.querySelector('.sy-sc[data-ssel="'+id+'"] span');if(sp)sp.textContent=v||"Sans titre"}
+  if(f==="title"&&el.classList.contains("sy-title")){var sp=main.querySelector('.sy-sc[data-ssel="'+id+'"] .sy-sct b');if(sp)sp.textContent=v||"Sans titre"}
   sSave(id,f,v);
-  if(el.tagName==="SELECT"){sFlush();el.blur();render()}
+  if(f==="text"||f==="summary"){var it2=sById(id),pe=main.querySelector('.sy-sc[data-ssel="'+id+'"] .sy-sct em');if(pe&&it2)pe.textContent=sPrev(it2,70)}
+  if(el.tagName==="SELECT"||el.type==="checkbox"){sFlush();el.blur();render()}
 }
 main.addEventListener("input",syField);main.addEventListener("change",syField);
 
