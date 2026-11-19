@@ -512,7 +512,7 @@ mark.mn{background:color-mix(in srgb,var(--lime) 22%,transparent);color:var(--in
 .ri.k-shape.hc svg *{fill:var(--c);stroke:var(--c)} .ri.k-shape.hc{color:var(--cx)}
 .ri.k-shape .nt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:14%;height:auto;pointer-events:none}
 .ri.k-shape .nt[contenteditable="true"]{pointer-events:auto}
-.ri.k-frame{pointer-events:none;border:calc(2px*var(--ik,1)) dashed var(--mute);background:color-mix(in srgb,var(--mute) 7%,transparent)}
+.ri.k-frame{border:calc(2px*var(--ik,1)) dashed var(--mute);background:color-mix(in srgb,var(--mute) 7%,transparent)}
 .ri.k-frame.hc{border-color:var(--c);background:color-mix(in srgb,var(--c) 10%,transparent)}
 .ri.k-frame .nt{position:absolute;left:0;top:0;transform:translateY(-100%);height:auto;max-width:calc(100% - 56px);padding:8px 14px;font-size:var(--fs,24px);font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:var(--mute);color:var(--bg);pointer-events:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:move}
 .ri.k-frame.hc .nt{background:var(--c);color:var(--cx)}
@@ -1576,7 +1576,7 @@ function renderRefs(){
   var cv=$("#cv");
   if(!cv){
     main.innerHTML='<div class="rtools" id="rbar"></div><div class="cv" id="cv" tabindex="0"><div class="world" id="world"></div><div class="marq" id="marq" hidden></div><div class="pbar" id="pbar" hidden></div><div class="btl" id="tools" hidden></div><div class="selbar" id="selbar" hidden></div><canvas class="mm" id="mm" width="180" height="120" hidden></canvas><div class="rhint" id="rhint" hidden></div></div>'+
-      '<p class="rfoot">Pavé tactile : deux doigts pour déplacer, pincer pour zoomer · Souris : molette = zoom · Glisser le fond ou Espace + glisser : déplacer · Maj + glisser : sélectionner plusieurs éléments · Double-clic : écrire · N note · T texte · S forme · R cadre · C relier · P dessiner · Ctrl+D dupliquer · Flèches : déplacer · Suppr : supprimer · F : tout voir · Ctrl+V : coller</p>'+
+      '<p class="rfoot">Pavé tactile : deux doigts pour déplacer, pincer pour zoomer · Souris : molette = zoom · Glisser sur le fond : sélectionner plusieurs éléments · Espace + glisser (ou clic molette) : déplacer la vue · Double-clic : écrire · N note · T texte · S forme · R cadre · C relier · P dessiner · Ctrl+D dupliquer · Flèches : déplacer · Suppr : supprimer · F : tout voir · Ctrl+V : coller</p>'+
       '<input type="file" id="rfile" accept="image/*" multiple hidden>';
     cv=$("#cv");cv.classList.toggle("pen",penOn);rboard="";nodes={};bindCanvas(cv);
   }
@@ -1873,8 +1873,8 @@ function onDown(e){
     var items=chosen.map(function(k){var r=itemById(k);return r&&nodes[k]?{id:k,node:nodes[k],ix:r.x||0,iy:r.y||0,iw:r.w||200,ih:r.h||200,kind:r.kind,carried:!selSet[k]}:null}).filter(Boolean);
     if(!items.length){rd=pan;return}
     rd={mode:isH?"size":"move",x0:e.clientX,y0:e.clientY,items:items,moved:false,z:zRange()[1]+1};
-  }else if(e.shiftKey){
-    rd={mode:"marq",x0:e.clientX,y0:e.clientY,base:selIds(),moved:false};
+  }else if(e.shiftKey||(e.pointerType!=="touch"&&canWrite)){
+    rd={mode:"marq",x0:e.clientX,y0:e.clientY,base:e.shiftKey?selIds():[],moved:false,shift:e.shiftKey};
   }else{setSel([]);rd=pan}
 }
 function onMove(e){
@@ -1923,12 +1923,12 @@ function onUp(e){
   if(d.mode==="pan")return;
   if(d.mode==="draw"){finishStroke(d);return}
   if(d.mode==="marq"){
-    hideMarq();if(!d.moved)return;
+    hideMarq();if(!d.moved){if(!d.shift)setSel([]);return}
     var cr=$("#cv").getBoundingClientRect(),k=rview.k;
     var x0=(Math.min(d.x0,e.clientX)-cr.left-rview.x)/k,x1=(Math.max(d.x0,e.clientX)-cr.left-rview.x)/k;
     var y0=(Math.min(d.y0,e.clientY)-cr.top-rview.y)/k,y1=(Math.max(d.y0,e.clientY)-cr.top-rview.y)/k;
     var all=d.base.slice();
-    curItems().forEach(function(r){if(r.kind==="conn")return;var rx=r.x||0,ry=r.y||0;if(rx<x1&&rx+(r.w||200)>x0&&ry<y1&&ry+(r.h||200)>y0&&all.indexOf(r.id)<0)all.push(r.id)});
+    curItems().forEach(function(r){if(r.kind==="conn")return;var rx=r.x||0,ry=r.y||0,rw=r.w||200,rh=r.h||200,hit=r.kind==="frame"?(rx>=x0&&rx+rw<=x1&&ry>=y0&&ry+rh<=y1):(rx<x1&&rx+rw>x0&&ry<y1&&ry+rh>y0);if(hit&&all.indexOf(r.id)<0)all.push(r.id)});
     setSel(all);return;
   }
   if(!d.moved)return;
