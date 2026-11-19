@@ -514,8 +514,16 @@ mark.mn{background:color-mix(in srgb,var(--lime) 22%,transparent);color:var(--in
 .ri.k-shape .nt[contenteditable="true"]{pointer-events:auto}
 .ri.k-frame{pointer-events:none;border:calc(2px*var(--ik,1)) dashed var(--mute);background:color-mix(in srgb,var(--mute) 7%,transparent)}
 .ri.k-frame.hc{border-color:var(--c);background:color-mix(in srgb,var(--c) 10%,transparent)}
-.ri.k-frame .nt{position:absolute;left:0;top:0;height:auto;max-width:100%;padding:8px 14px;font-size:var(--fs,24px);font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:var(--mute);color:var(--bg);pointer-events:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:move}
+.ri.k-frame .nt{position:absolute;left:0;top:0;transform:translateY(-100%);height:auto;max-width:calc(100% - 56px);padding:8px 14px;font-size:var(--fs,24px);font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:var(--mute);color:var(--bg);pointer-events:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:move}
 .ri.k-frame.hc .nt{background:var(--c);color:var(--cx)}
+.ri.k-frame .fe{position:absolute;pointer-events:auto;cursor:move}
+.ri.k-frame .fe1{left:0;right:0;top:calc(-10px*var(--ik,1));height:calc(20px*var(--ik,1))}
+.ri.k-frame .fe2{left:0;right:0;bottom:calc(-10px*var(--ik,1));height:calc(20px*var(--ik,1))}
+.ri.k-frame .fe3{top:0;bottom:0;left:calc(-10px*var(--ik,1));width:calc(20px*var(--ik,1))}
+.ri.k-frame .fe4{top:0;bottom:0;right:calc(-10px*var(--ik,1));width:calc(20px*var(--ik,1))}
+.ri.k-frame .fk{position:absolute;right:0;top:0;transform:translateY(-100%);width:48px;height:44px;padding:0;pointer-events:auto;background:var(--mute);color:var(--bg);border:0;font-size:22px;line-height:1;cursor:pointer}
+.ri.k-frame.hc .fk{background:var(--c);color:var(--cx)}
+.ri.k-frame.lk::after{display:none}
 .ri.k-frame .rh,.ri.k-frame.sel .rh{pointer-events:auto}
 .ri.k-frame.sel{outline-offset:0}
 .ri .nt{font-size:var(--fs,28px)}
@@ -1590,7 +1598,8 @@ function mkNode(r){
     n.appendChild(sv);
   }
   else if(k==="shape"){n.appendChild(document.createElementNS("http://www.w3.org/2000/svg","svg"));var t0=document.createElement("div");t0.className="nt";n.appendChild(t0)}
-  else if(k==="note"||k==="text"||k==="frame"){var t=document.createElement("div");t.className="nt";n.appendChild(t)}
+  else if(k==="note"||k==="text"||k==="frame"){var t=document.createElement("div");t.className="nt";n.appendChild(t);
+    if(k==="frame"){[1,2,3,4].forEach(function(i){var e=document.createElement("i");e.className="fe fe"+i;n.appendChild(e)});var fk=document.createElement("button");fk.className="fk";fk.title="Verrouiller / déverrouiller le cadre";fk.setAttribute("aria-label","Verrouiller le cadre");n.appendChild(fk)}}
   else if(k==="task"){var tk=document.createElement("div");tk.className="tkb";n.appendChild(tk)}
   else{var im=document.createElement("img");im.draggable=false;im.alt=r.name||"";im.decoding="async";im.onerror=function(){n.classList.add("broken")};n.appendChild(im)}
   if(k!=="draw"){var h=document.createElement("i");h.className="rh";n.appendChild(h)}
@@ -1621,6 +1630,7 @@ function updNode(n,r){
   }
   else if(k==="note"||k==="text"||k==="frame"||k==="shape"){
     if(k==="shape"){var sk=n.firstChild,sig=(r.shape||"rect")+(r.w||0)+"x"+(r.h||0);if(n.dataset.sig!==sig){n.dataset.sig=sig;shapeSvg(sk,r)}}
+    if(k==="frame"){var fkb=n.querySelector(".fk");if(fkb){fkb.textContent=r.lock?"\u{1F512}":"\u{1F513}";fkb.style.display=canWrite?"":"none"}}
     var t=n.querySelector(".nt");if(document.activeElement!==t&&t.textContent!==(r.text||""))t.textContent=r.text||"";
   }
   else if(k==="task"){
@@ -1822,6 +1832,8 @@ function hideMarq(){var m=$("#marq");if(m)m.hidden=true}
 function onDown(e){
   var cv=$("#cv");
   if(e.target.isContentEditable||e.button>1||(e.target.closest&&e.target.closest("#pbar,.qb,#tools,#selbar,#mm")))return;
+  var fkE=e.target.closest&&e.target.closest(".fk");
+  if(fkE&&canWrite){e.preventDefault();var fr=itemById(fkE.parentNode.dataset.id);if(fr){var lk=!fr.lock;enqueue("r"+fr.id,function(){return refCol.doc(fr.id).update({lock:lk})});setSel([fr.id])}return}
   pointers[e.pointerId]={x:e.clientX,y:e.clientY};
   try{cv.setPointerCapture(e.pointerId)}catch(x){}
   var ids=Object.keys(pointers);
