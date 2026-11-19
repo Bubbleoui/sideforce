@@ -22,9 +22,19 @@
   --s0:#3b3b3b; --tint:rgba(255,255,255,.035);
   color-scheme:dark;
 }
-html[data-theme="clair"]{--bg:#eeeee8;--panel:#ffffff;--panel2:#f5f5f0;--line:#d8d8cf;--ink:#1b1b1b;--mute:#66665f;--lime:#4f7d00;--on-lime:#ffffff;--black:#e3e3db;--late:#d3322a;--s0:#cdcdc4;--tint:rgba(0,0,0,.035);color-scheme:light}
-html[data-theme="flame"]{--bg:#1d1210;--panel:#281815;--panel2:#301d19;--line:#4d2e27;--ink:#fff3ec;--mute:#bb9d92;--lime:#ff7a1a;--on-lime:#1a0a04;--black:#0f0807;--late:#ff4d6d;--s0:#4a2f28;--tint:rgba(255,200,170,.04)}
-html[data-theme="eau"]{--bg:#0e1b23;--panel:#142630;--panel2:#193240;--line:#28485a;--ink:#e9f8ff;--mute:#86abbd;--lime:#3fdccf;--on-lime:#04222a;--black:#06121a;--late:#ff7b6b;--s0:#27475a;--tint:rgba(170,230,255,.04)}
+html[data-theme="clair"]{--bg:#dcdcd3;--panel:#ebebe4;--panel2:#e2e2da;--line:#c2c2b7;--ink:#1b1b1b;--mute:#5d5d56;--lime:#44700a;--on-lime:#ffffff;--black:#d0d0c6;--late:#c42d26;--s0:#bbbbb0;--tint:rgba(0,0,0,.04);--lg:linear-gradient(135deg,#1b1b1b 0%,#44700a 100%);--lgglow:rgba(68,112,10,.14);color-scheme:light}
+@property --hue{syntax:"<number>";inherits:true;initial-value:285}
+html[data-theme="crazy"]{--bg:#12002b;--panel:#1e0845;--panel2:#290d5a;--line:#4b2a8f;--ink:#fff6ff;--mute:#b9a3e6;--lime:hsl(var(--hue) 100% 62%);--on-lime:#12002b;--black:#0a0019;--late:#ff3d81;--s0:#3c2178;--tint:rgba(255,120,255,.06);--lg:linear-gradient(100deg,#ff2d95,#ffe14d,#38ff9c,#2dd4ff,#a45bff,#ff2d95);--lgglow:rgba(255,80,220,.55);color-scheme:dark;animation:crzhue 8s linear infinite}
+@keyframes crzhue{to{--hue:645}}
+html[data-theme="crazy"] body{background:radial-gradient(1200px 700px at 12% -10%,rgba(255,45,149,.28),transparent 60%),radial-gradient(1000px 700px at 100% 110%,rgba(45,212,255,.24),transparent 60%),var(--bg);background-attachment:fixed}
+html[data-theme="crazy"] .brand .lgm,html[data-theme="crazy"] .lg .lgm{background-size:300% 100%,300% 100%;animation:crzlg 5s linear infinite}
+@keyframes crzlg{to{background-position:300% 0,300% 0}}
+@media (prefers-reduced-motion:reduce){html[data-theme="crazy"],html[data-theme="crazy"] .lgm{animation:none!important}}
+/* logo : PNG utilisé comme masque -> couleur, dégradé, reflet et lueur */
+.lgw{display:block;flex:none;filter:drop-shadow(0 0 6px var(--lgglow,rgba(198,244,50,.45))) drop-shadow(0 0 16px var(--lgglow,rgba(198,244,50,.25)))}
+.lgm{display:block;width:100%;aspect-ratio:800/341;background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.85) 50%,transparent 62%) -120% 0/250% 100% no-repeat,var(--lg,linear-gradient(135deg,#e6ff7a 0%,var(--lime) 55%,#8fbd10 100%));-webkit-mask:url(icons/logo.png) center/contain no-repeat;mask:url(icons/logo.png) center/contain no-repeat;animation:lgshine 6s ease-in-out infinite}
+@keyframes lgshine{0%,55%{background-position:-120% 0,0 0}85%,100%{background-position:220% 0,0 0}}
+.brand:hover .lgw,.lg .lgw{filter:drop-shadow(0 0 8px var(--lgglow,rgba(198,244,50,.6))) drop-shadow(0 0 22px var(--lgglow,rgba(198,244,50,.4)))}
 .lgl{fill:var(--lime)}
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -45,14 +55,14 @@ button{cursor:pointer}
 .me small{display:block;color:var(--mute);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .av{width:36px;height:36px;flex:none;background:var(--lime);color:var(--on-lime);display:grid;place-items:center;font-style:normal;font-weight:700;font-size:18px;clip-path:polygon(14% 0,100% 0,86% 100%,0 100%)}
 .sact{display:flex;gap:12px;flex-wrap:wrap}
-.side .brand{gap:10px} .side .brand svg{width:54px} .side .brand b{font-size:22px}
+.side .brand{gap:6px;flex-direction:column;align-items:flex-start} .side .brand .lgw{width:190px}
 .sact button{background:none;border:0;padding:2px 0;color:var(--mute);font-size:11px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
 .sact button:hover{color:var(--lime)}
 .sact button[hidden]{display:none}
 .side .nav button:hover,.side .poles button:hover{background:var(--panel2)}
 .side .poles button[aria-pressed="true"]{background:var(--bg)}
 .brand{display:flex;align-items:center;gap:14px}
-.brand svg{width:76px;height:auto;flex:none}
+.brand .lgw{width:150px}
 .brand b{display:block;font-size:26px;line-height:1;letter-spacing:.02em;text-transform:uppercase}
 .brand b em{font-style:normal;color:var(--lime)}
 .brand span{display:block;margin-top:4px;color:var(--mute);letter-spacing:.14em;text-transform:uppercase;font-size:12px}
@@ -172,9 +182,9 @@ tr:last-child td{border-bottom:0}
 @media (min-width:901px){
   body.scol .shell{grid-template-columns:68px minmax(0,1fr)}
   body.scol .side{padding:14px 8px}
-  body.scol .brand{justify-content:center} body.scol .brand>div,body.scol .nav .lbl,body.scol .nav button span,body.scol #polesBox,body.scol .me>div,body.scol .sync span,body.scol .sact,body.scol .tgl span{display:none}
+  body.scol .brand{align-items:center;justify-content:center} body.scol .brand>div,body.scol .nav .lbl,body.scol .nav button span,body.scol #polesBox,body.scol .me>div,body.scol .sync span,body.scol .sact,body.scol .tgl span{display:none}
   body.scol .nav button{justify-content:center!important;padding-left:0;padding-right:0}
-  body.scol .brand svg{width:40px} body.scol .me{justify-content:center} body.scol .tgl{justify-content:center} body.scol .tgl svg{transform:rotate(180deg)} body.scol .sync{justify-content:center}
+  body.scol .brand .lgw{width:46px} body.scol .me{justify-content:center} body.scol .tgl{justify-content:center} body.scol .tgl svg{transform:rotate(180deg)} body.scol .sync{justify-content:center}
 }
 .av img{width:100%;height:100%;object-fit:cover;display:block}
 .av.sm{width:24px;height:24px;font-size:12px;display:inline-grid;vertical-align:middle;margin-right:8px}
@@ -641,13 +651,8 @@ body.rfull .rfoot{display:none}
 <div class="shell">
   <aside class="side">
     <div class="brand" id="home" role="link" tabindex="0" title="Accueil (touche 1)">
-      <svg viewBox="0 0 110 60" aria-hidden="true">
-        <polygon points="14,4 32,4 20,56 2,56" fill="#000" stroke="#fff" stroke-width="2"/>
-        <polygon points="36,4 54,4 42,56 24,56" fill="#000" stroke="#fff" stroke-width="2"/>
-        <polygon points="58,4 76,4 64,56 46,56" class="lgl"/>
-        <polygon points="80,4 98,4 86,56 68,56" class="lgl"/>
-      </svg>
-      <div><b>Side<em>Force</em></b><span>V2 · Pipeline</span></div>
+      <span class="lgw" role="img" aria-label="SideForce"><i class="lgm"></i></span>
+      <div><span>V2 · Pipeline</span></div>
     </div>
     <div class="sbody">
     <nav>
@@ -701,7 +706,7 @@ body.rfull .rfoot{display:none}
 .lg{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px}
 .lg[hidden],.lg [hidden]{display:none!important}
 .lg .lgb{width:100%;max-width:380px;display:flex;flex-direction:column;gap:14px}
-.lg svg{width:120px;height:auto}
+.lg .lgw{width:240px;margin:0 auto 4px}
 .lg h1{margin:0;font-size:28px;text-transform:uppercase;letter-spacing:.04em}
 .lg h1 em{color:var(--lime);font-style:normal}
 .lg p{margin:0;color:var(--mute)}
@@ -714,8 +719,8 @@ body.rfull .rfoot{display:none}
 
 </style>
 <div class="lg" id="lg" hidden><div class="lgb">
-  <svg viewBox="0 0 110 60" aria-hidden="true"><polygon points="14,4 32,4 20,56 2,56" fill="#000" stroke="#fff" stroke-width="2"/><polygon points="36,4 54,4 42,56 24,56" fill="#000" stroke="#fff" stroke-width="2"/><polygon points="58,4 76,4 64,56 46,56" class="lgl"/><polygon points="80,4 98,4 86,56 68,56" class="lgl"/></svg>
-  <h1>Side<em>Force</em> Pipeline</h1>
+  <span class="lgw" role="img" aria-label="SideForce"><i class="lgm"></i></span>
+  <h1>Pipeline</h1>
   <div id="lgStep1" class="lgb" style="max-width:none">
     <p>Entre ton e-mail pour recevoir un lien de connexion.</p>
     <input id="lgMail" type="email" autocomplete="email" inputmode="email" placeholder="ton@email.com">
@@ -1035,7 +1040,7 @@ function vHisto(){
 var comments=[],comCol=null,profCol=null,uid="",myEmail="",myName="",eqMine=false;
 try{myName=localStorage.getItem("sf_me")||"";eqMine=localStorage.getItem("sf_eqmine")==="1"}catch(e){}
 var profiles=[],myProf=null,notifs=[],notifCol=null,nFirst=true,themeSynced=false;
-var THEMES=[["sombre","Sombre","#1f1f1f","#c6f432"],["clair","Clair","#eeeee8","#4f7d00"],["flame","Flame","#1d1210","#ff7a1a"],["eau","Eau","#0e1b23","#3fdccf"]];
+var THEMES=[["sombre","Sombre","#1f1f1f","#c6f432"],["clair","Clair","#dcdcd3","#44700a"],["crazy","Crazy","#12002b","#ff2d95"]];
 var theme="sombre";try{theme=localStorage.getItem("sf_theme")||"sombre"}catch(e){}
 function themeInfo(n){return THEMES.filter(function(t){return t[0]===n})[0]||THEMES[0]}
 function applyTheme(n,save){
