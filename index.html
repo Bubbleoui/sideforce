@@ -261,9 +261,13 @@ tr:last-child td{border-bottom:0}
 html[data-theme="clair"]{--p1:#d3322a;--p2:#c97c00;--p3:#1f6fd1}
 .gpr{display:inline-block;font-style:normal;font-weight:700;font-size:11px;letter-spacing:.06em;padding:1px 6px;color:#101010;background:var(--pc,var(--mute));vertical-align:1px}
 html[data-theme="clair"] .gpr{color:#fff}
+.ktools{display:flex;align-items:center;gap:10px;margin-bottom:14px;color:var(--mute);font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.kgh{display:flex;align-items:center;gap:8px;margin:10px 0 2px;padding:4px 2px;border-bottom:1px solid var(--line);font-size:13px;letter-spacing:.1em;text-transform:uppercase}.kgh b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.kgh small{color:var(--mute)}.kgh:first-of-type{margin-top:0}
+.card.kp{border-left:4px solid var(--pc)}
 .gpr.p1{--pc:var(--p1)}.gpr.p2{--pc:var(--p2)}.gpr.p3{--pc:var(--p3)}.gpr.p0{--pc:var(--mute)}
 .gantt .bar{box-shadow:inset 0 -6px 0 var(--pc,transparent)}
 .gantt .bar.lt{box-shadow:inset 4px 0 0 var(--late),inset 0 -6px 0 var(--pc,transparent)}
+.card.p1{--pc:var(--p1)}.card.p2{--pc:var(--p2)}.card.p3{--pc:var(--p3)}
 .bar.p1{--pc:var(--p1)}.bar.p2{--pc:var(--p2)}.bar.p3{--pc:var(--p3)}
 .glg.p1{background:var(--p1)}.glg.p2{background:var(--p2)}.glg.p3{background:var(--p3)}
 .g-row.pole .gp b{white-space:nowrap}
@@ -1142,16 +1146,33 @@ function vEquipe(){
   });
   return h+'</div>';
 }
+var kGroup="";try{kGroup=localStorage.getItem("sf_kgrp")||""}catch(e){}
+function kCard(t){
+  var pi=PRIO.indexOf(t.prio);
+  return '<article class="card'+(pi>=0&&pi<3?" kp p"+(pi+1):"")+'" '+(canWrite?'draggable="true"':"")+' data-id="'+esc(t.id)+'" data-open tabindex="0"><b>'+esc(t.title)+'</b>'+
+    '<div class="meta"><span class="pole">'+esc(pname(t.pole))+'</span><span>'+(t.end?(late(t)?"⚠ ":"")+"fin "+fmt(t.end):"")+'</span></div>'+
+    '<div class="meta"><span>'+pb(t)+esc(t.prio||"")+'</span><span>'+esc(t.owner||"")+'</span></div>'+tagsHtml(t)+'</article>';
+}
+function kGroups(R){
+  var G=[];
+  if(kGroup==="owner"){
+    var ow={};R.forEach(function(t){ow[t.owner||""]=1});
+    Object.keys(ow).filter(Boolean).sort(function(a,b){return a.localeCompare(b)}).concat(ow[""]?[""]:[]).forEach(function(o){G.push({ic:o?avHtml(profByName(o),o,"sm"):'<i class="av sm none">?</i>',label:o||"Non assigné",rows:R.filter(function(t){return (t.owner||"")===o})})});
+  }else if(kGroup==="prio"){
+    PRIO.concat([""]).forEach(function(pr,i){G.push({ic:'<i class="gpr p'+(i<3?i+1:0)+'">'+(pr?"P"+(i+1):"–")+'</i>',label:pr||"Sans priorité",rows:R.filter(function(t){return (PRIO.indexOf(t.prio)<0?"":t.prio)===pr})})});
+  }else if(kGroup==="pole"){
+    POLES.concat([""]).forEach(function(p){G.push({ic:"",label:pname(p),rows:R.filter(function(t){return p===""?POLES.indexOf(t.pole)<0:t.pole===p})})});
+  }
+  return G.filter(function(g){return g.rows.length});
+}
 function vKanban(){
-  var L=visible().sort(sortT), h='<div class="kan">';
+  var L=visible().sort(sortT),seg=[["","Aucun"],["pole","Pôle"],["owner","Personne"],["prio","Priorité"]].map(function(g){return '<button class="'+(kGroup===g[0]?"on":"")+'" data-kg="'+g[0]+'">'+g[1]+'</button>'}).join("");
+  var h='<div class="ktools"><span>Grouper par</span><div class="seg2" role="group" aria-label="Grouper par">'+seg+'</div></div><div class="kan">';
   STATUS.forEach(function(s,i){
     var R=L.filter(function(t){return (STATUS.indexOf(t.status)<0?0:STATUS.indexOf(t.status))===i});
     h+='<section class="col" data-s="'+i+'" data-status="'+esc(s)+'"><h3><span>'+esc(s)+'</span><span>'+R.length+'</span></h3>';
-    R.forEach(function(t){
-      h+='<article class="card" '+(canWrite?'draggable="true"':"")+' data-id="'+esc(t.id)+'" data-open tabindex="0"><b>'+esc(t.title)+'</b>'+
-        '<div class="meta"><span class="pole">'+esc(pname(t.pole))+'</span><span>'+(t.end?(late(t)?"⚠ ":"")+"fin "+fmt(t.end):"")+'</span></div>'+
-        '<div class="meta"><span>'+pb(t)+esc(t.prio||"")+'</span><span>'+esc(t.owner||"")+'</span></div>'+tagsHtml(t)+'</article>';
-    });
+    if(kGroup)kGroups(R).forEach(function(g){h+='<div class="kgh">'+g.ic+'<b>'+esc(g.label)+'</b><small>'+g.rows.length+'</small></div>'+g.rows.map(kCard).join("")});
+    else R.forEach(function(t){h+=kCard(t)});
     h+='</section>';
   });
   return h+'</div>';
@@ -2049,6 +2070,8 @@ main.addEventListener("click",function(e){
   var gz=t.closest("[data-gz]");
   if(gz){gZoom=gz.dataset.gz;DW=DWS[gZoom];try{localStorage.setItem("sf_gz",gZoom)}catch(x){}ganttLeft=null;render();return}
   if(t.closest("[data-gtoday]")){var gg=$("#gantt");if(gg)gg.scrollTo({left:Math.max(0,(vGantt.t0-vGantt.lo)*DW-140),behavior:"smooth"});return}
+  var kgb=t.closest("[data-kg]");
+  if(kgb){kGroup=kgb.dataset.kg;try{localStorage.setItem("sf_kgrp",kGroup)}catch(x){}render();return}
   var ggb=t.closest("[data-gg]");
   if(ggb){gGroup=ggb.dataset.gg;try{localStorage.setItem("sf_ggrp",gGroup)}catch(x){}ganttLeft=null;render();return}
   var gpb=t.closest("[data-gp]");
