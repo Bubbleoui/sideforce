@@ -286,8 +286,8 @@ tr:last-child td{border-bottom:0}
 .gbar{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;margin-bottom:12px}
 .gleg{display:flex;flex-wrap:wrap;gap:16px;color:var(--mute);font-size:13px;letter-spacing:.06em;text-transform:uppercase}
 .gleg span{display:flex;align-items:center;gap:8px}
-.lg{display:inline-block;width:22px;height:10px;transform:skewX(-20deg)}
-.lg.s0{background:var(--s0)}.lg.s1{background:var(--lime)}.lg.s2{background:var(--ink)}.lg.lt{background:var(--late)}
+.glg{display:inline-block;width:22px;height:10px;transform:skewX(-20deg)}
+.glg.s0{background:var(--s0)}.glg.s1{background:var(--lime)}.glg.s2{background:var(--ink)}.glg.lt{background:var(--late)}
 .gtools{display:flex;gap:10px;align-items:center}
 .seg2{display:flex;border:1px solid var(--line)}
 .seg2 button{background:none;border:0;padding:8px 14px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
@@ -1021,7 +1021,7 @@ function vGantt(){
   var days=hi-lo+1, W=days*DW, LW=window.innerWidth<=900?160:280, showD=DW>=30;
   var grid='background-size:'+(7*DW)+'px 100%;width:'+W+'px;--dw:'+DW+'px';
   var seg=["jour","semaine","mois"].map(function(z){return '<button class="'+(gZoom===z?"on":"")+'" data-gz="'+z+'">'+z.charAt(0).toUpperCase()+z.slice(1)+'</button>'}).join("");
-  var h='<div class="gbar"><div class="gleg"><span><i class="lg s0"></i>À faire</span><span><i class="lg s1"></i>En cours</span><span><i class="lg s2"></i>Fini</span><span><i class="lg lt"></i>En retard</span></div>'+
+  var h='<div class="gbar"><div class="gleg"><span><i class="glg s0"></i>À faire</span><span><i class="glg s1"></i>En cours</span><span><i class="glg s2"></i>Fini</span><span><i class="glg lt"></i>En retard</span></div>'+
     '<div class="gtools"><button class="ghost" data-gtoday>Aujourd’hui</button><div class="seg2" role="group" aria-label="Échelle">'+seg+'</div></div></div>'+
     '<div class="gantt" id="gantt" style="--lw:'+LW+'px"><div class="g-inner" style="width:'+(LW+W)+'px">';
   // months
