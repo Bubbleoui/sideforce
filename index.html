@@ -553,6 +553,13 @@ mark.mn{background:color-mix(in srgb,var(--lime) 22%,transparent);color:var(--in
 #drawer label>*:not(span){font-size:16px;letter-spacing:0;text-transform:none;color:var(--ink);font-weight:400}
 #drawer label.chk{flex-direction:row;align-items:center;gap:10px;cursor:pointer;color:var(--ink);font-size:13px}
 #drawer label.chk input{width:18px;height:18px;accent-color:var(--lime);flex:none}
+:root{--ph-prod:#5cc8ff;--ph-pre:#c39bff}
+html[data-theme="clair"]{--ph-prod:#0b78ad;--ph-pre:#7444cc}
+.phtag{display:inline-block;margin-left:8px;padding:0 6px;font-size:11px;letter-spacing:.1em;font-weight:700;line-height:1.5;vertical-align:middle;color:#111}
+html[data-theme="clair"] .phtag{color:#fff}
+.phtag.prod{background:var(--ph-prod)}.phtag.pre{background:var(--ph-pre)}
+.card.ph-prod{border-top:3px solid var(--ph-prod)}.card.ph-pre{border-top:3px solid var(--ph-pre)}
+.phleg{display:flex;gap:6px;margin:10px 0 0;flex-wrap:wrap}.phleg .phtag{margin-left:0}
 .mpw{display:flex;gap:8px}.mpw input{flex:1;min-width:0;background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:9px 10px;font:inherit}
 .mpwm{display:block;margin-top:6px;color:var(--mute);font-size:12px;letter-spacing:0;text-transform:none}
 .pbox{display:flex;flex-direction:column;gap:12px;border-left:3px solid var(--lime);padding-left:12px}
@@ -786,6 +793,7 @@ html.noanim[data-theme="sombre"] body::after{display:none}
     <div id="polesBox">
       <p class="lbl" id="polesLbl">Pôle</p>
       <div class="poles" id="poles"></div>
+      <p class="phleg" title="Code couleur des tâches"><span class="phtag prod">PROD</span><span class="phtag pre">PRÉPROD</span></p>
     </div>
     </div>
     <div class="sfoot">
@@ -980,7 +988,7 @@ window.claude={use:function(n){return readyP.then(function(){return NS[n]||null}
 (function(){
 "use strict";
 var STATUS=["À faire","WIP","Fini"], PRIO=["P1 Haute","P2 Moyenne","P3 Basse"];
-var POLES=["Art Direction","Chara Design","Environnement","Story"];
+var POLES=["Art Direction","Chara Design","Environnement","Story","Production"];
 var VIEWS={suivi:["Suivi","Où en est la préprod"],equipe:["Équipe","Chacun coche ses tâches"],gantt:["Gantt","Glisse une barre pour décaler, tire ses bords pour la durée"],kanban:["Kanban","Glisse une carte pour changer son statut"],prod:["Production","Les tâches envoyées dans Maya"],refs:["Boards","Dépose, colle ou glisse tes images"],story:["Storyline","Actes, scènes et notes d’écriture"],doc:["Doc","Notes, comptes rendus et infos partagées"],histo:["Historique","Qui a fait quoi, et quand"]};
 var MONTHS=["JANV","FÉVR","MARS","AVR","MAI","JUIN","JUIL","AOÛT","SEPT","OCT","NOV","DÉC"];
 var DWS={jour:38,semaine:24,mois:11},gZoom="semaine",gCol={},DW=24,gGroup="pole";
@@ -1148,6 +1156,9 @@ function entParse(e){var m=/^(asset|shot):([^\/]+)\/(.+)$/.exec(e||"");if(!m)ret
 function entLabel(t){var p=entParse(t.entity);return !p.type?"":(p.type==="shot"?p.name.replace("/","_"):p.name)}
 function stepLabel(s){var all=STEPS.asset.concat(STEPS.shot);for(var i=0;i<all.length;i++)if(all[i][0]===s)return all[i][1];return s||""}
 function stepOpts(type,val){var L=type==="shot"?STEPS.shot:(type?STEPS.asset:[]);return '<option value="">—</option>'+L.map(function(s){return '<option value="'+s[0]+'"'+(s[0]===val?" selected":"")+'>'+s[1]+'</option>'}).join("")}
+function isProd(t){return !!(t&&(t.prod||t.pole==="Production"))}
+function phCls(t){return isProd(t)?" ph-prod":" ph-pre"}
+function phTag(t){return isProd(t)?'<span class="phtag prod" title="Production">PROD</span>':'<span class="phtag pre" title="Préproduction">PRÉPROD</span>'}
 function mtag(t){return t&&t.prod?'<span class="mtag" title="Visible dans l’onglet SideForce de Maya">MAYA</span>':""}
 function vProd(){
   var L=visible().filter(function(t){return t.prod}).sort(function(a,b){return (a.status==="Fini")-(b.status==="Fini")||sortT(a,b)});
@@ -1282,9 +1293,9 @@ function vEquipe(){
     h+='<section class="col oc" data-owner="'+esc(k)+'"><h3><span>'+(k!=="_"?avHtml(profByName(k),k,"sm"):"")+esc(k==="_"?"Non assigné":k)+(profByName(k)&&profByName(k).role?'<small class="pf-role"> · '+esc(profByName(k).role)+'</small>':"")+'</span><span>'+dn+'/'+R.length+'</span></h3>';
     R.forEach(function(t){
       var d=t.status==="Fini";
-      h+='<article class="card tk'+(d?" done":"")+'" '+(canWrite?'draggable="true"':"")+' data-id="'+esc(t.id)+'" data-open tabindex="0">'+
+      h+='<article class="card tk'+(d?" done":"")+phCls(t)+'" '+(canWrite?'draggable="true"':"")+' data-id="'+esc(t.id)+'" data-open tabindex="0">'+
         '<button class="ck'+(d?" on":"")+'" data-ck aria-label="'+(d?"Marquer à faire":"Marquer fait")+'" aria-pressed="'+d+'" '+(canWrite?"":"disabled")+'></button>'+
-        '<div class="tb"><b>'+esc(t.title)+mtag(t)+'</b><div class="meta"><span class="pole">'+esc(pname(t.pole))+'</span><span>'+(t.end?(!d&&late(t)?"⚠ ":"")+"fin "+fmt(t.end):"")+'</span></div>'+
+        '<div class="tb"><b>'+esc(t.title)+phTag(t)+mtag(t)+'</b><div class="meta"><span class="pole">'+esc(pname(t.pole))+'</span><span>'+(t.end?(!d&&late(t)?"⚠ ":"")+"fin "+fmt(t.end):"")+'</span></div>'+
         '<div class="meta"><span>'+pb(t)+esc(t.prio||"")+'</span><span>'+(k==="_"?esc(t.owner||""):"")+(commentsOf(t.id).length?" 💬 "+commentsOf(t.id).length:"")+'</span></div>'+tkBadges(t)+tagsHtml(t)+'</div></article>';
     });
     if(canWrite)h+='<button class="ghost addo" data-addo="'+esc(k)+'">+ Tâche</button>';
@@ -1295,7 +1306,7 @@ function vEquipe(){
 var kGroup="";try{kGroup=localStorage.getItem("sf_kgrp")||""}catch(e){}
 function kCard(t){
   var pi=PRIO.indexOf(t.prio);
-  return '<article class="card'+(pi>=0&&pi<3?" kp p"+(pi+1):"")+'" '+(canWrite?'draggable="true"':"")+' data-id="'+esc(t.id)+'" data-open tabindex="0"><b>'+esc(t.title)+mtag(t)+'</b>'+
+  return '<article class="card'+(pi>=0&&pi<3?" kp p"+(pi+1):"")+phCls(t)+'" '+(canWrite?'draggable="true"':"")+' data-id="'+esc(t.id)+'" data-open tabindex="0"><b>'+esc(t.title)+phTag(t)+mtag(t)+'</b>'+
     '<div class="meta"><span class="pole">'+esc(pname(t.pole))+'</span><span>'+(t.end?(late(t)?"⚠ ":"")+"fin "+fmt(t.end):"")+'</span></div>'+
     '<div class="meta"><span>'+pb(t)+esc(t.prio||"")+'</span><span>'+esc(t.owner||"")+'</span></div>'+tkBadges(t)+tagsHtml(t)+'</article>';
 }
@@ -3299,6 +3310,7 @@ drawer.addEventListener("click",function(e){
 });
 drawer.addEventListener("change",function(e){
   if(e.target.id==="f-prod"){var b=drawer.querySelector("#f-pbox");if(b)b.hidden=!e.target.checked}
+  if(e.target.id==="f-pole"&&e.target.value==="Production"){var c=drawer.querySelector("#f-prod"),bx=drawer.querySelector("#f-pbox");if(c&&!c.checked){c.checked=true;if(bx)bx.hidden=false}}
   if(e.target.id==="f-etype"){var s=drawer.querySelector("#f-step");if(s)s.innerHTML=stepOpts(e.target.value,s.value)}
 });
 drawer.addEventListener("submit",function(e){
