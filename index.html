@@ -839,6 +839,8 @@ html.noanim[data-theme="sombre"] body::after{display:none}
     <p>Entre ton e-mail pour recevoir un lien de connexion.</p>
     <input id="lgMail" type="email" autocomplete="email" inputmode="email" placeholder="ton@email.com">
     <button class="go" id="lgSend">Recevoir le lien</button>
+    <input id="lgPw" type="password" autocomplete="current-password" placeholder="ou ton mot de passe (si tu en as un)">
+    <button class="lnk" id="lgPwGo">Se connecter avec le mot de passe</button>
   </div>
   <div id="lgStep2" class="lgb" style="max-width:none" hidden>
     <p>Clique sur le lien reçu par e-mail, ou entre ici le code à chiffres s'il y en a un.</p>
@@ -894,7 +896,13 @@ $q("lgSend").onclick=function(){
     msg("E-mail envoyé à "+email+". Regarde aussi dans les spams.");show(2);
   });
 };
-$q("lgMail").addEventListener("keydown",function(e){if(e.key==="Enter")$q("lgSend").click()});
+$q("lgMail").addEventListener("keydown",function(e){if(e.key==="Enter")$q($q("lgPw").value?"lgPwGo":"lgSend").click()});
+$q("lgPwGo").onclick=function(){
+  var em=$q("lgMail").value.trim(),pw=$q("lgPw").value;if(!em||!pw){msg("Entre ton e-mail et ton mot de passe.",true);return}
+  var b=$q("lgPwGo");b.disabled=true;msg("Connexion…");
+  sb.auth.signInWithPassword({email:em,password:pw}).then(function(r){b.disabled=false;if(r.error)msg(r.error.message==="Invalid login credentials"?"E-mail ou mot de passe incorrect.":r.error.message,true)});
+};
+$q("lgPw").addEventListener("keydown",function(e){if(e.key==="Enter")$q("lgPwGo").click()});
 $q("lgVerify").onclick=function(){
   var t=$q("lgCode").value.trim();if(!t){msg("Entre le code.",true);return}
   sb.auth.verifyOtp({email:email,token:t,type:"email"}).then(function(r){if(r.error)msg(r.error.message,true)});
