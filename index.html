@@ -553,6 +553,8 @@ mark.mn{background:color-mix(in srgb,var(--lime) 22%,transparent);color:var(--in
 #drawer label>*:not(span){font-size:16px;letter-spacing:0;text-transform:none;color:var(--ink);font-weight:400}
 #drawer label.chk{flex-direction:row;align-items:center;gap:10px;cursor:pointer;color:var(--ink);font-size:13px}
 #drawer label.chk input{width:18px;height:18px;accent-color:var(--lime);flex:none}
+.mpw{display:flex;gap:8px}.mpw input{flex:1;min-width:0;background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:9px 10px;font:inherit}
+.mpwm{display:block;margin-top:6px;color:var(--mute);font-size:12px;letter-spacing:0;text-transform:none}
 .pbox{display:flex;flex-direction:column;gap:12px;border-left:3px solid var(--lime);padding-left:12px}
 .pbox[hidden]{display:none}
 .mtag{display:inline-block;margin-left:8px;padding:0 6px;border:1px solid var(--lime);color:var(--lime);font-size:11px;letter-spacing:.1em;vertical-align:middle;font-weight:700;line-height:1.5}
@@ -945,6 +947,7 @@ function col(name){
 }
 var NS={
   db:{collection:col},
+  auth:{setPassword:function(pw){return sb.auth.updateUser({password:pw}).then(function(r){if(r.error)throw fail(r.error)})}},
   user:{me:function(){var u=curSession&&curSession.user;return{id:u?u.id:"",email:u?u.email:""}},can:function(){return true},isOwner:function(){return false},canEdit:function(){return true}},
   downloads:{save:function(o){return new Promise(function(res,rej){
     try{var b=new Blob([o.data],{type:/\.md$/.test(o.filename)?"text/markdown;charset=utf-8":"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=o.filename;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},1000);res({status:"saved"})}catch(e){rej({code:"unavailable"})}
@@ -3192,6 +3195,7 @@ function openProfile(){
    '<div class="pf-col"><span>Couleur</span><div id="pf-colors">'+PCOLORS.map(function(c){return '<button type="button" class="sw" data-pfc="'+c+'" style="background:'+c+'" aria-pressed="'+(c===edit.color)+'" aria-label="Couleur"></button>'}).join("")+'</div></div>'+
    '<div class="pf-col"><span>Thème</span><div class="thm">'+THEMES.map(function(t){return '<button type="button" data-th="'+t[0]+'" aria-pressed="'+(t[0]===theme)+'"><i style="--b:'+t[2]+';--a:'+t[3]+'"></i>'+t[1]+'</button>'}).join("")+'</div></div>'+
    '<label><span>E-mail</span><input type="text" value="'+esc(myEmail)+'" disabled></label>'+
+   '<div class="pf-col"><span>Mot de passe pour Maya</span><div class="mpw"><input id="pf-mpw" type="password" placeholder="8 caractères minimum" autocomplete="new-password" aria-label="Mot de passe pour Maya"><button type="button" class="ghost" id="pfMpw">Définir</button></div><small id="pfMpwMsg" class="mpwm">Pour te connecter depuis l’onglet SideForce de Maya avec ton e-mail, sans attendre de mail.</small></div>'+
    '<div class="acts"><button class="cta" type="submit">Enregistrer</button><button class="ghost" type="button" data-close>Annuler</button></div></form>');
 }
 function cropSquare(file,size){
@@ -3275,6 +3279,15 @@ drawer.addEventListener("change",function(e){
     syncPole();
   }
   if(e.target.id==="m-usepole")syncPole();
+});
+drawer.addEventListener("click",function(e){
+  if(e.target.id!=="pfMpw")return;
+  var i=drawer.querySelector("#pf-mpw"),m=drawer.querySelector("#pfMpwMsg"),b=e.target,pw=i.value;
+  if(pw.length<8){m.textContent="8 caractères minimum.";return}
+  b.disabled=true;m.textContent="Enregistrement…";
+  window.claude.use("auth").then(function(a){if(!a)throw new Error("indisponible");return a.setPassword(pw)}).then(function(){
+    i.value="";m.textContent="Mot de passe enregistré. Dans Maya : ☁ Site : se connecter, puis ton e-mail et ce mot de passe.";
+  },function(x){m.textContent="Impossible : "+((x&&x.message)||x)}).then(function(){b.disabled=false});
 });
 drawer.addEventListener("change",function(e){
   if(e.target.id==="f-prod"){var b=drawer.querySelector("#f-pbox");if(b)b.hidden=!e.target.checked}
