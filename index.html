@@ -551,6 +551,11 @@ mark.mn{background:color-mix(in srgb,var(--lime) 22%,transparent);color:var(--in
 #drawer h2{margin:0;font-size:34px;text-transform:uppercase;color:var(--lime);line-height:1}
 #drawer label{display:flex;flex-direction:column;gap:6px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
 #drawer label>*:not(span){font-size:16px;letter-spacing:0;text-transform:none;color:var(--ink);font-weight:400}
+#drawer label.chk{flex-direction:row;align-items:center;gap:10px;cursor:pointer;color:var(--ink);font-size:13px}
+#drawer label.chk input{width:18px;height:18px;accent-color:var(--lime);flex:none}
+.pbox{display:flex;flex-direction:column;gap:12px;border-left:3px solid var(--lime);padding-left:12px}
+.pbox[hidden]{display:none}
+.mtag{display:inline-block;margin-left:8px;padding:0 6px;border:1px solid var(--lime);color:var(--lime);font-size:11px;letter-spacing:.1em;vertical-align:middle;font-weight:700;line-height:1.5}
 #drawer select{font-weight:400;text-transform:none;font-size:16px;padding:9px 28px 9px 10px}
 #drawer input,#drawer textarea{padding:9px 10px;width:100%}
 #drawer textarea{min-height:110px;resize:vertical}
@@ -768,6 +773,7 @@ html.noanim[data-theme="sombre"] body::after{display:none}
         <button data-v="equipe"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><circle cx="9" cy="8" r="3.5"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6M17 5a3.5 3.5 0 0 1 0 7M18 15c2.5.6 4 2.4 4 6"/></svg><span>Équipe</span></button>
         <button data-v="gantt"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M3 5h9M7 12h12M5 19h8"/></svg><span>Gantt</span></button>
         <button data-v="kanban"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><rect x="3" y="3" width="5" height="18"/><rect x="10" y="3" width="5" height="11"/><rect x="17" y="3" width="4" height="15"/></svg><span>Kanban</span></button>
+        <button data-v="prod"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M12 2l9 5v10l-9 5-9-5V7zM12 12l9-5M12 12v10M12 12L3 7"/></svg><span>Production</span></button>
         <p class="lbl">Studio</p>
         <button data-v="refs"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="5"/><rect x="13" y="10" width="8" height="11"/><rect x="3" y="13" width="8" height="8"/></svg><span>Boards</span></button>
         <button data-v="story"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M4 4h12a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3zM4 17a3 3 0 0 1 3-3h12M9 8h6"/></svg><span>Storyline</span></button>
@@ -964,7 +970,7 @@ window.claude={use:function(n){return readyP.then(function(){return NS[n]||null}
 "use strict";
 var STATUS=["À faire","WIP","Fini"], PRIO=["P1 Haute","P2 Moyenne","P3 Basse"];
 var POLES=["Art Direction","Chara Design","Environnement","Story"];
-var VIEWS={suivi:["Suivi","Où en est la préprod"],equipe:["Équipe","Chacun coche ses tâches"],gantt:["Gantt","Glisse une barre pour décaler, tire ses bords pour la durée"],kanban:["Kanban","Glisse une carte pour changer son statut"],refs:["Boards","Dépose, colle ou glisse tes images"],story:["Storyline","Actes, scènes et notes d’écriture"],doc:["Doc","Notes, comptes rendus et infos partagées"],histo:["Historique","Qui a fait quoi, et quand"]};
+var VIEWS={suivi:["Suivi","Où en est la préprod"],equipe:["Équipe","Chacun coche ses tâches"],gantt:["Gantt","Glisse une barre pour décaler, tire ses bords pour la durée"],kanban:["Kanban","Glisse une carte pour changer son statut"],prod:["Production","Les tâches envoyées dans Maya"],refs:["Boards","Dépose, colle ou glisse tes images"],story:["Storyline","Actes, scènes et notes d’écriture"],doc:["Doc","Notes, comptes rendus et infos partagées"],histo:["Historique","Qui a fait quoi, et quand"]};
 var MONTHS=["JANV","FÉVR","MARS","AVR","MAI","JUIN","JUIL","AOÛT","SEPT","OCT","NOV","DÉC"];
 var DWS={jour:38,semaine:24,mois:11},gZoom="semaine",gCol={},DW=24,gGroup="pole";
 try{gGroup=localStorage.getItem("sf_ggrp")||"pole";gZoom=localStorage.getItem("sf_gz")||"semaine";gCol=JSON.parse(localStorage.getItem("sf_gc")||"{}")}catch(e){}
@@ -1124,6 +1130,26 @@ function vListe(){
   return h;
 }
 var OWNERS=["Loic","Lucas","Rémi","Tout le monde"],PEOPLE=["Loic","Lucas","Rémi"];
+/* ---------- production (Maya) ---------- */
+var ETYPES=[["chr","Personnage"],["prp","Prop"],["set","Décor"],["shot","Shot"]];
+var STEPS={asset:[["mod","Modeling"],["rig","Rigging"],["lkd","Lookdev"]],shot:[["lay","Layout"],["anm","Animation"],["lgt","Lighting"]]};
+function entParse(e){var m=/^(asset|shot):([^\/]+)\/(.+)$/.exec(e||"");if(!m)return {type:"",name:""};return m[1]==="shot"?{type:"shot",name:m[2]+"/"+m[3]}:{type:m[2],name:m[3]}}
+function entLabel(t){var p=entParse(t.entity);return !p.type?"":(p.type==="shot"?p.name.replace("/","_"):p.name)}
+function stepLabel(s){var all=STEPS.asset.concat(STEPS.shot);for(var i=0;i<all.length;i++)if(all[i][0]===s)return all[i][1];return s||""}
+function stepOpts(type,val){var L=type==="shot"?STEPS.shot:(type?STEPS.asset:[]);return '<option value="">—</option>'+L.map(function(s){return '<option value="'+s[0]+'"'+(s[0]===val?" selected":"")+'>'+s[1]+'</option>'}).join("")}
+function mtag(t){return t&&t.prod?'<span class="mtag" title="Visible dans l’onglet SideForce de Maya">MAYA</span>':""}
+function vProd(){
+  var L=visible().filter(function(t){return t.prod}).sort(function(a,b){return (a.status==="Fini")-(b.status==="Fini")||sortT(a,b)});
+  var h='<p class="hint">Les tâches cochées « Production » apparaissent dans l’onglet SideForce de Maya, chez leur responsable. Quand un artiste change le statut dans Maya, il se met à jour ici en direct (étiquette MAYA dans la colonne Statut).</p>';
+  if(!L.length)return h+'<div class="empty"><b>Aucune tâche de production</b>Ouvre une tâche et coche « Production : envoyer dans Maya ».</div>';
+  h+='<div class="tw"><table><thead><tr><th>Tâche</th><th>Asset / Shot</th><th>Étape</th><th>Statut</th><th>Fin</th><th>Responsable</th></tr></thead><tbody>';
+  L.forEach(function(t){
+    h+='<tr data-id="'+esc(t.id)+'"><td class="c-t"><button class="tl" data-open>'+esc(t.title)+'</button></td><td>'+esc(entLabel(t))+'</td><td>'+esc(stepLabel(t.step))+'</td>'+
+      '<td><select data-f="status" data-k="'+STATUS.indexOf(t.status)+'" '+ro()+' aria-label="Statut">'+STATUS.map(function(o){return '<option'+(o===t.status?" selected":"")+'>'+esc(o)+'</option>'}).join("")+'</select>'+(t.mayaAt?'<span class="mtag" title="Dernier changement fait dans Maya'+(t.mayaBy?" par "+esc(t.mayaBy):"")+'">MAYA</span>':"")+'</td>'+
+      '<td>'+fmt(t.end)+(late(t)?'<span class="tag">RETARD</span>':"")+'</td><td>'+esc(t.owner||"—")+'</td></tr>';
+  });
+  return h+'</tbody></table></div>';
+}
 var penOn=false,penColor="#c6f432",penW=5,strokeStack=[];
 var acts=[],actCol=null,histoWho="";
 function logAct(text,task){
@@ -1247,7 +1273,7 @@ function vEquipe(){
       var d=t.status==="Fini";
       h+='<article class="card tk'+(d?" done":"")+'" '+(canWrite?'draggable="true"':"")+' data-id="'+esc(t.id)+'" data-open tabindex="0">'+
         '<button class="ck'+(d?" on":"")+'" data-ck aria-label="'+(d?"Marquer à faire":"Marquer fait")+'" aria-pressed="'+d+'" '+(canWrite?"":"disabled")+'></button>'+
-        '<div class="tb"><b>'+esc(t.title)+'</b><div class="meta"><span class="pole">'+esc(pname(t.pole))+'</span><span>'+(t.end?(!d&&late(t)?"⚠ ":"")+"fin "+fmt(t.end):"")+'</span></div>'+
+        '<div class="tb"><b>'+esc(t.title)+mtag(t)+'</b><div class="meta"><span class="pole">'+esc(pname(t.pole))+'</span><span>'+(t.end?(!d&&late(t)?"⚠ ":"")+"fin "+fmt(t.end):"")+'</span></div>'+
         '<div class="meta"><span>'+pb(t)+esc(t.prio||"")+'</span><span>'+(k==="_"?esc(t.owner||""):"")+(commentsOf(t.id).length?" 💬 "+commentsOf(t.id).length:"")+'</span></div>'+tkBadges(t)+tagsHtml(t)+'</div></article>';
     });
     if(canWrite)h+='<button class="ghost addo" data-addo="'+esc(k)+'">+ Tâche</button>';
@@ -1258,7 +1284,7 @@ function vEquipe(){
 var kGroup="";try{kGroup=localStorage.getItem("sf_kgrp")||""}catch(e){}
 function kCard(t){
   var pi=PRIO.indexOf(t.prio);
-  return '<article class="card'+(pi>=0&&pi<3?" kp p"+(pi+1):"")+'" '+(canWrite?'draggable="true"':"")+' data-id="'+esc(t.id)+'" data-open tabindex="0"><b>'+esc(t.title)+'</b>'+
+  return '<article class="card'+(pi>=0&&pi<3?" kp p"+(pi+1):"")+'" '+(canWrite?'draggable="true"':"")+' data-id="'+esc(t.id)+'" data-open tabindex="0"><b>'+esc(t.title)+mtag(t)+'</b>'+
     '<div class="meta"><span class="pole">'+esc(pname(t.pole))+'</span><span>'+(t.end?(late(t)?"⚠ ":"")+"fin "+fmt(t.end):"")+'</span></div>'+
     '<div class="meta"><span>'+pb(t)+esc(t.prio||"")+'</span><span>'+esc(t.owner||"")+'</span></div>'+tkBadges(t)+tagsHtml(t)+'</article>';
 }
@@ -2152,7 +2178,7 @@ function render(){
   if(view==="story"){main.innerHTML=vStory();syAfter();return}
   if(!tasks.length&&view!=="suivi"){main.innerHTML=vEmpty();return}
   if(!tasks.length&&view==="suivi"&&!miles.length){main.innerHTML=vEmpty();return}
-  main.innerHTML=view==="equipe"?vEquipe():view==="gantt"?vGantt():view==="kanban"?vKanban():vSuivi();
+  main.innerHTML=view==="equipe"?vEquipe():view==="gantt"?vGantt():view==="kanban"?vKanban():view==="prod"?vProd():vSuivi();
   if(view==="suivi"&&fxEnter)fxCount();fxEnter=false;
   if(view==="gantt"){
     var g=$("#gantt");
@@ -3116,7 +3142,8 @@ function openTask(id,preset){openTask0(id,preset);if(edit&&edit.kind==="task"){d
 function openTask0(id,preset){
   var t=id?tasks.filter(function(x){return x.id===id})[0]:null;
   if(id&&!t)return;
-  t=t||{title:"",pole:(preset&&preset.pole)||POLES[0],prio:PRIO[1],status:STATUS[0],start:"",end:"",owner:(preset&&preset.owner)||"",link:"",notes:""};
+  t=t||{title:"",pole:(preset&&preset.pole)||POLES[0],prio:PRIO[1],status:STATUS[0],start:"",end:"",owner:(preset&&preset.owner)||"",link:"",notes:"",prod:false,entity:"",step:""};
+  var ep=entParse(t.entity);
   edit={kind:"task",id:id,deps:depsOf(t).slice(),checks:checksOf(t).map(function(c){return {t:c.t,d:!!c.d}})};
   var dis=canWrite?"":"disabled";
   openDrawer('<h2 id="dt">'+(id?"Tâche":"Nouvelle tâche")+'</h2><form id="frm" autocomplete="off">'+
@@ -3127,6 +3154,11 @@ function openTask0(id,preset){
    '<label><span>Responsable</span><select id="f-owner" '+dis+'>'+opts(OWNERS.concat(t.owner&&OWNERS.indexOf(t.owner)<0?[t.owner]:[]),t.owner,"Non assigné")+'</select></label></div>'+
    '<div class="row2"><label><span>Début</span><input id="f-start" type="date" value="'+esc(t.start)+'" '+dis+'></label>'+
    '<label><span>Fin</span><input id="f-end" type="date" value="'+esc(t.end)+'" '+dis+'></label></div>'+
+   '<label class="chk"><input id="f-prod" type="checkbox" '+(t.prod?"checked":"")+' '+dis+'><span>Production : envoyer dans Maya</span></label>'+
+   '<div class="pbox" id="f-pbox" '+(t.prod?"":"hidden")+'><div class="row2"><label><span>Type</span><select id="f-etype" '+dis+'><option value="">—</option>'+
+   ETYPES.map(function(x){return '<option value="'+x[0]+'"'+(x[0]===ep.type?" selected":"")+'>'+x[1]+'</option>'}).join("")+'</select></label>'+
+   '<label><span>Nom</span><input id="f-ename" type="text" value="'+esc(ep.name)+'" placeholder="mariee · sq010/sh0010" '+dis+'></label></div>'+
+   '<label><span>Étape</span><select id="f-step" '+dis+'>'+stepOpts(ep.type,t.step)+'</select></label></div>'+
    '<label><span>Lien (Drive, fichier, planche)</span><input id="f-link" type="url" value="'+esc(t.link)+'" placeholder="https://" '+dis+'></label>'+
    '<label><span>Étiquettes (séparées par des virgules)</span><input id="f-tags" type="text" value="'+esc(tagsOf(t).join(", "))+'" placeholder="urgent, client, en attente…" maxlength="120" '+dis+'></label>'+
    (canWrite&&allTags().length?'<div class="mnc">Existantes : '+allTags().map(function(x){return '<button type="button" data-addtag="'+esc(x)+'">#'+esc(x)+'</button>'}).join("")+'</div>':"")+
@@ -3244,6 +3276,10 @@ drawer.addEventListener("change",function(e){
   }
   if(e.target.id==="m-usepole")syncPole();
 });
+drawer.addEventListener("change",function(e){
+  if(e.target.id==="f-prod"){var b=drawer.querySelector("#f-pbox");if(b)b.hidden=!e.target.checked}
+  if(e.target.id==="f-etype"){var s=drawer.querySelector("#f-step");if(s)s.innerHTML=stepOpts(e.target.value,s.value)}
+});
 drawer.addEventListener("submit",function(e){
   e.preventDefault();if(!edit||!canWrite)return;
   if(edit.kind==="profile"){
@@ -3279,6 +3315,15 @@ drawer.addEventListener("submit",function(e){
     data={title:v("f-title"),pole:v("f-pole"),prio:v("f-prio"),status:v("f-status"),owner:v("f-owner"),start:v("f-start"),end:v("f-end"),link:v("f-link"),notes:v("f-notes"),tags:parseTags(v("f-tags")),deps:(edit.deps||[]).slice(),checks:(edit.checks||[]).filter(function(c){return String(c.t||"").trim()}).map(function(c){return {t:String(c.t).trim().slice(0,160),d:!!c.d}})};
     if(!data.title){toast("Donne un nom à la tâche.");return}
     if(data.start&&data.end&&data.end<data.start){toast("La fin est avant le début.");return}
+    data.prod=drawer.querySelector("#f-prod").checked;
+    if(data.prod){
+      var ty=v("f-etype"),nm=v("f-ename").toLowerCase(),stp=v("f-step");
+      if(!ty||!nm||!stp){toast("Production : choisis le type, le nom et l’étape.");return}
+      if(ty==="shot"){if(!/^sq\d{3}\/sh\d{4}$/.test(nm)){toast("Shot : écris-le sous la forme sq010/sh0010.");return}data.entity="shot:"+nm}
+      else{if(!/^[a-z][a-z0-9_]*$/.test(nm)){toast("Nom d’asset : minuscules, chiffres et _ (ex. mariee).");return}data.entity="asset:"+ty+"/"+nm}
+      data.step=stp;
+      if(!data.owner)toast("Astuce : choisis un responsable pour qu’elle apparaisse chez lui dans Maya.");
+    }
     col=taskCol;key="t";
   }else{
     data={title:v("m-title"),date:v("m-date"),status:v("m-status"),pole:v("m-pole"),type:v("m-type")};
@@ -3431,9 +3476,9 @@ main.addEventListener("click",function(e){
 /* ---------- export ---------- */
 $("#exp").addEventListener("click",function(){
   if(!downloads)return;
-  var cols=["Tâche","Pôle","Priority","Status","Start Date","End Date","Responsable","Lien","Notes"];
+  var cols=["Tâche","Pôle","Priority","Status","Start Date","End Date","Responsable","Lien","Notes","Production","Asset/Shot","Étape"];
   var cell=function(s){s=String(s==null?"":s);return '"'+s.replace(/"/g,'""')+'"'};
-  var rows=tasks.slice().sort(function(a,b){return POLES.indexOf(a.pole)-POLES.indexOf(b.pole)||sortT(a,b)}).map(function(t){return [t.title,t.pole,t.prio,t.status,t.start,t.end,t.owner,t.link,t.notes].map(cell).join(",")});
+  var rows=tasks.slice().sort(function(a,b){return POLES.indexOf(a.pole)-POLES.indexOf(b.pole)||sortT(a,b)}).map(function(t){return [t.title,t.pole,t.prio,t.status,t.start,t.end,t.owner,t.link,t.notes,t.prod?"oui":"",t.entity||"",t.step||""].map(cell).join(",")});
   downloads.save({filename:"preprod-sideforce.csv",data:"﻿"+[cols.map(cell).join(",")].concat(rows).join("\r\n")}).then(function(){toast("Export enregistré")},function(e){if(e&&e.code!=="declined")toast("Export impossible ici.")});
 });
 
